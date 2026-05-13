@@ -1,6 +1,7 @@
 const js = require('@eslint/js');
 const globals = require('globals');
 const importPlugin = require('eslint-plugin-import');
+const reactPlugin = require('eslint-plugin-react');
 const prettier = require('eslint-config-prettier');
 
 module.exports = [
@@ -35,17 +36,43 @@ module.exports = [
     },
   },
 
-  // Frontend overrides — React + browser + ESM modules under apps/web/src.
+  // apps/web Node-side config files — CommonJS (no "type": "module" in apps/web/package.json).
   {
-    files: ['apps/web/src/**/*.{js,jsx}', 'apps/web/vite.config.js'],
+    files: ['apps/web/tailwind.config.js', 'apps/web/postcss.config.js', 'apps/web/*.cjs'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'commonjs',
+      globals: { ...globals.node },
+    },
+  },
+
+  // apps/web Vite config — ESM-only (.mjs extension forces ESM regardless of package.json).
+  {
+    files: ['apps/web/vite.config.mjs'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: { ...globals.node },
+    },
+  },
+
+  // apps/web React source — ESM + browser + JSX, with React plugin for JSX usage tracking.
+  {
+    files: ['apps/web/src/**/*.{js,jsx}'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
       parserOptions: { ecmaFeatures: { jsx: true } },
       globals: { ...globals.browser },
     },
+    plugins: { react: reactPlugin },
+    settings: { react: { version: 'detect' } },
     rules: {
       'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      // React 17+ JSX transform — React doesn't need to be in scope, but JSX usage of an
+      // imported identifier (e.g. <App />) must still count as "used" for no-unused-vars.
+      'react/jsx-uses-vars': 'error',
+      'react/jsx-uses-react': 'off',
     },
   },
 

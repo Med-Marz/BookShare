@@ -1,0 +1,21 @@
+{
+  "name": "book-service",
+  "version": "0.1.0",
+  "private": true,
+  "description": "BookShare book microservice — owns the catalog, cover images (via MinIO), and availability state. gRPC + Kafka consumer.",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.14.3",
+    "@grpc/proto-loader": "^0.8.1",
+    "pino": "^10.3.1",
+    "pino-pretty": "^13.1.3"
+  }
+}

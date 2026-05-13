@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package book;
+
+// BookService — owns book documents, cover-image objects (via MinIO),
+// and the availability state field (Available / Reserved / Lent Out).
+// Subscribes to the four Kafka topics and updates availability on
+// reservation/loan events.
+//
+// Field naming convention: snake_case (preserved by protoLoader's
+// keepCase: true option).
+
+service BookService {
+  // TODO: RPCs added in epic 2 (AddBook, EditBook, ReplaceCover, DeleteBook,
+  // GetBook, ListBooksByOwner, ListRecentBooks, ListBooks, SearchBooks, ...)
+}

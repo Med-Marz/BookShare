@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package user;
+
+// UserService — owns accounts, authentication, and profile (display name,
+// phone, postal address). Called by the API gateway only; messages land in
+// later stories (signup/login/profile read/update).
+//
+// Field naming convention: snake_case (preserved by protoLoader's
+// keepCase: true option).
+
+service UserService {
+  // TODO: RPCs added in story 1.2+ (CreateUser, AuthenticateUser, GetUser, UpdateUser, ...)
+}

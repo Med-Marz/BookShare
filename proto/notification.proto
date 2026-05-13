@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package notification;
+
+// NotificationService — Kafka consumer on all four business topics; persists
+// each consumed event as a mock notification row in its own SQLite database
+// and serves recent notifications back over gRPC.
+//
+// Field naming convention: snake_case (preserved by protoLoader's
+// keepCase: true option).
+
+service NotificationService {
+  // TODO: RPCs added in epic 5 (ListNotifications, MarkNotificationRead, ...)
+}

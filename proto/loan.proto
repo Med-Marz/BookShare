@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package loan;
+
+// LoanService — owns reservations, loans, state transitions, and emits
+// the four Kafka business events. Sole producer of every Kafka topic.
+//
+// Field naming convention: snake_case (preserved by protoLoader's
+// keepCase: true option).
+
+service LoanService {
+  // TODO: RPCs added in epic 4 (Reserve, CancelReservation, StartLoan,
+  // MarkReturned, ListMyReservations, ListReservationsOnMyBooks,
+  // CountMyActiveReservations, ...)
+}

@@ -1,0 +1,248 @@
+# BookShare full-stack orchestration.
+# Bring up: cp .env.example .env && docker compose up -d
+# Tear down (keep data): docker compose down
+# Tear down (wipe volumes): docker compose down -v
+
+name: bookshare
+
+networks:
+  bookshare-net:
+    driver: bridge
+
+volumes:
+  user-db: {}
+  loan-db: {}
+  notification-db: {}
+  book-snapshot: {}
+  minio-data: {}
+  kafka-logs: {}
+
+services:
+  # ---------------------------------------------------------------------------
+  # Infrastructure: Kafka (KRaft mode, no Zookeeper) + MinIO (S3-compatible).
+  # ---------------------------------------------------------------------------
+  kafka:
+    image: apache/kafka:3.9.0
+    container_name: bookshare-kafka
+    networks: [bookshare-net]
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      CLUSTER_ID: 5L6g3nShT-eMCtK--X86sw
+    volumes:
+      - kafka-logs:/tmp/kraft-combined-logs
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    container_name: bookshare-minio
+    networks: [bookshare-net]
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Microservices — gRPC only (plus /health HTTP for Docker healthchecks).
+  # ---------------------------------------------------------------------------
+  user-service:
+    build:
+      context: .
+      dockerfile: services/user-service/Dockerfile
+    container_name: bookshare-user-service
+    networks: [bookshare-net]
+    environment:
+      USER_GRPC_PORT: ${USER_GRPC_PORT}
+      USER_HEALTH_PORT: ${USER_HEALTH_PORT}
+      USER_DB_PATH: ${USER_DB_PATH}
+      JWT_SECRET: ${JWT_SECRET}
+      LOG_LEVEL: ${LOG_LEVEL}
+      NODE_ENV: ${NODE_ENV}
+    ports:
+      - "${USER_GRPC_PORT}:${USER_GRPC_PORT}"
+    volumes:
+      - user-db:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:${USER_HEALTH_PORT}/health >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  book-service:
+    build:
+      context: .
+      dockerfile: services/book-service/Dockerfile
+    container_name: bookshare-book-service
+    networks: [bookshare-net]
+    environment:
+      BOOK_GRPC_PORT: ${BOOK_GRPC_PORT}
+      BOOK_HEALTH_PORT: ${BOOK_HEALTH_PORT}
+      BOOK_SNAPSHOT_PATH: ${BOOK_SNAPSHOT_PATH}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_PORT: ${MINIO_PORT}
+      MINIO_USE_SSL: ${MINIO_USE_SSL}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_BUCKET: ${MINIO_BUCKET}
+      LOG_LEVEL: ${LOG_LEVEL}
+      NODE_ENV: ${NODE_ENV}
+    ports:
+      - "${BOOK_GRPC_PORT}:${BOOK_GRPC_PORT}"
+    volumes:
+      - book-snapshot:/app/data
+    depends_on:
+      kafka: { condition: service_healthy }
+      minio: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:${BOOK_HEALTH_PORT}/health >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  loan-service:
+    build:
+      context: .
+      dockerfile: services/loan-service/Dockerfile
+    container_name: bookshare-loan-service
+    networks: [bookshare-net]
+    environment:
+      LOAN_GRPC_PORT: ${LOAN_GRPC_PORT}
+      LOAN_HEALTH_PORT: ${LOAN_HEALTH_PORT}
+      LOAN_DB_PATH: ${LOAN_DB_PATH}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+      LOG_LEVEL: ${LOG_LEVEL}
+      NODE_ENV: ${NODE_ENV}
+    ports:
+      - "${LOAN_GRPC_PORT}:${LOAN_GRPC_PORT}"
+    volumes:
+      - loan-db:/app/data
+    depends_on:
+      kafka: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:${LOAN_HEALTH_PORT}/health >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: services/notification-service/Dockerfile
+    container_name: bookshare-notification-service
+    networks: [bookshare-net]
+    environment:
+      NOTIFICATION_GRPC_PORT: ${NOTIFICATION_GRPC_PORT}
+      NOTIFICATION_HEALTH_PORT: ${NOTIFICATION_HEALTH_PORT}
+      NOTIFICATION_DB_PATH: ${NOTIFICATION_DB_PATH}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+      LOG_LEVEL: ${LOG_LEVEL}
+      NODE_ENV: ${NODE_ENV}
+    ports:
+      - "${NOTIFICATION_GRPC_PORT}:${NOTIFICATION_GRPC_PORT}"
+    volumes:
+      - notification-db:/app/data
+    depends_on:
+      kafka: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:${NOTIFICATION_HEALTH_PORT}/health >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Gateway — single REST + GraphQL entry point for the React client.
+  # ---------------------------------------------------------------------------
+  gateway:
+    build:
+      context: .
+      dockerfile: apps/gateway/Dockerfile
+    container_name: bookshare-gateway
+    networks: [bookshare-net]
+    environment:
+      PORT: 4000
+      WEB_ORIGIN: ${WEB_ORIGIN}
+      JWT_SECRET: ${JWT_SECRET}
+      USER_GRPC_HOST: user-service
+      USER_GRPC_PORT: ${USER_GRPC_PORT}
+      BOOK_GRPC_HOST: book-service
+      BOOK_GRPC_PORT: ${BOOK_GRPC_PORT}
+      LOAN_GRPC_HOST: loan-service
+      LOAN_GRPC_PORT: ${LOAN_GRPC_PORT}
+      NOTIFICATION_GRPC_HOST: notification-service
+      NOTIFICATION_GRPC_PORT: ${NOTIFICATION_GRPC_PORT}
+      LOG_LEVEL: ${LOG_LEVEL}
+      NODE_ENV: ${NODE_ENV}
+    ports:
+      - "4000:4000"
+    depends_on:
+      user-service: { condition: service_healthy }
+      book-service: { condition: service_healthy }
+      loan-service: { condition: service_healthy }
+      notification-service: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4000/health >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # React frontend, served by nginx in production mode (port 8080).
+  # ---------------------------------------------------------------------------
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_GATEWAY_URL: ${VITE_GATEWAY_URL}
+    container_name: bookshare-web
+    networks: [bookshare-net]
+    ports:
+      - "8080:8080"
+    depends_on:
+      gateway: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/ >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped

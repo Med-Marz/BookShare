@@ -12,8 +12,8 @@
   },
   "scripts": {
     "lint": "eslint .",
-    "format": "prettier --write \"apps/**\" \"services/**\" \"proto/**\" \"docs/**/*.md\" \"*.{js,cjs,mjs,json,md}\" --no-error-on-unmatched-pattern",
-    "format:check": "prettier --check \"apps/**\" \"services/**\" \"proto/**\" \"docs/**/*.md\" \"*.{js,cjs,mjs,json,md}\" --no-error-on-unmatched-pattern",
+    "format": "prettier --write \"apps/**\" \"services/**\" \"proto/**\" \"docs/**/*.md\" \"*.{js,cjs,mjs,json,md}\" --no-error-on-unmatched-pattern --ignore-unknown",
+    "format:check": "prettier --check \"apps/**\" \"services/**\" \"proto/**\" \"docs/**/*.md\" \"*.{js,cjs,mjs,json,md}\" --no-error-on-unmatched-pattern --ignore-unknown",
     "start": "docker compose up -d",
     "stop": "docker compose down"
   },

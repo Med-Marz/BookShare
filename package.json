@@ -1,0 +1,28 @@
+{
+  "name": "bookshare",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Peer-to-peer book lending and exchange platform — microservices demo (REST, GraphQL, gRPC, Kafka).",
+  "workspaces": [
+    "apps/*",
+    "services/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "format": "prettier --write \"apps/**\" \"services/**\" \"proto/**\" \"docs/**/*.md\" \"*.{js,cjs,mjs,json,md}\" --no-error-on-unmatched-pattern",
+    "format:check": "prettier --check \"apps/**\" \"services/**\" \"proto/**\" \"docs/**/*.md\" \"*.{js,cjs,mjs,json,md}\" --no-error-on-unmatched-pattern",
+    "start": "docker compose up -d",
+    "stop": "docker compose down"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.4",
+    "eslint": "9.39.4",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-import": "2.32.0",
+    "globals": "17.6.0",
+    "prettier": "3.8.3"
+  }
+}

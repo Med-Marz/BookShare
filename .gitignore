@@ -1,0 +1,41 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+apps/web/dist/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+*.swo
+
+# Service data (mounted volumes use Docker volumes; service-local data goes here in non-Docker dev)
+services/*/data/
+
+# Coverage
+coverage/
+*.lcov
+
+# Misc
+.eslintcache
+.cache/

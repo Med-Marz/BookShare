@@ -14,7 +14,13 @@ service UserService {
   // (user-service does not hold JWT_SECRET).
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
 
-  // TODO: AuthenticateUser (story 1.3), GetUser / UpdateUser (story 1.4)
+  // Verify an email + password pair. Story 1.3.
+  // On success: returns the user. On any failure (unknown email,
+  // wrong password, malformed input): gRPC UNAUTHENTICATED with a
+  // generic message — never enumerate which field failed.
+  rpc AuthenticateUser(AuthenticateUserRequest) returns (AuthenticateUserResponse);
+
+  // TODO: GetUser, UpdateUser (story 1.4)
 }
 
 message User {
@@ -35,5 +41,14 @@ message CreateUserRequest {
 }
 
 message CreateUserResponse {
+  User user = 1;
+}
+
+message AuthenticateUserRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message AuthenticateUserResponse {
   User user = 1;
 }

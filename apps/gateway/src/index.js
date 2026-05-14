@@ -1,3 +1,5 @@
+const fs = require('node:fs');
+const path = require('node:path');
 const express = require('express');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
@@ -7,22 +9,14 @@ const { expressMiddleware } = require('@as-integrations/express5');
 
 const logger = require('./logger');
 const { errorHandler } = require('./errors');
+const resolvers = require('./resolvers');
 
 const PORT = Number.parseInt(process.env.PORT || '4000', 10);
 const WEB_ORIGIN = process.env.WEB_ORIGIN || 'http://localhost:5173';
 
-// ---- GraphQL: minimal schema until story 1.2+ adds real types ----
-const typeDefs = `
-  type Query {
-    _empty: String
-  }
-`;
-
-const resolvers = {
-  Query: {
-    _empty: () => null,
-  },
-};
+// ---- GraphQL: SDL loaded from a single .gql file so the schema can grow
+// without bloating this entrypoint. Resolvers live alongside in src/resolvers/.
+const typeDefs = fs.readFileSync(path.join(__dirname, 'schema.gql'), 'utf8');
 
 async function start() {
   const app = express();

@@ -1,6 +1,7 @@
 import { createContext } from 'react';
 
-// Empty for Story 1.1 — real shape (`{ currentUser, token, login, logout }`) is wired in Story 1.2 / 1.3.
+// Real shape filled by AuthProvider. Default values let consumers safely
+// destructure even when used outside the provider (which should never happen).
 const AuthContext = createContext({
   currentUser: null,
   token: null,

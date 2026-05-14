@@ -1,12 +1,13 @@
 import { Routes, Route } from 'react-router-dom';
 
 import Header from './components/Header.jsx';
+import RequireAuth from './auth/RequireAuth.jsx';
 import SignupPage from './pages/SignupPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
+import MyProfilePage from './pages/MyProfilePage.jsx';
 
-// Placeholder for routes that still ship in later stories (1.3 → /login,
-// 1.4 → /me, 1.5 → /users/:id, epic 2 → /books/*, epic 4 → /reservations,
-// epic 5 → /notifications).
+// Placeholder for routes that still ship in later stories (1.5 → /users/:id,
+// epic 2 → /books/*, epic 4 → /reservations, epic 5 → /notifications).
 function Placeholder({ title }) {
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
@@ -26,7 +27,14 @@ function App() {
         <Route path="/" element={<Placeholder title="BookShare" />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
-        <Route path="/me" element={<Placeholder title="My profile" />} />
+        <Route
+          path="/profile"
+          element={
+            <RequireAuth>
+              <MyProfilePage />
+            </RequireAuth>
+          }
+        />
         <Route path="/users/:id" element={<Placeholder title="User profile" />} />
         <Route path="/books" element={<Placeholder title="Browse books" />} />
         <Route path="/books/new" element={<Placeholder title="Add a book" />} />

@@ -46,7 +46,7 @@ function Header() {
                 Add a book
               </NavLink>
               <Link
-                to="/me"
+                to="/profile"
                 className="inline-flex items-center gap-1.5 text-sm no-underline hover:text-bordeaux"
               >
                 <UserRound className="h-4 w-4" aria-hidden="true" />

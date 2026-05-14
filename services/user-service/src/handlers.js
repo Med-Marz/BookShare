@@ -2,8 +2,16 @@ const { randomUUID } = require('node:crypto');
 const grpc = require('@grpc/grpc-js');
 
 const db = require('./db');
-const { signupSchema } = require('./schemas');
-const { hashPassword } = require('./auth');
+const { signupSchema, loginSchema } = require('./schemas');
+const { hashPassword, verifyPassword } = require('./auth');
+
+// Generic UNAUTHENTICATED — never distinguishes which check failed, so an
+// attacker cannot enumerate which emails are registered or whether a password
+// guess hit the right account.
+const GENERIC_UNAUTHENTICATED = {
+  code: grpc.status.UNAUTHENTICATED,
+  message: 'email or password is incorrect',
+};
 
 // Map a zod error to a gRPC INVALID_ARGUMENT carrying the first field issue.
 function zodErrorToGrpc(error) {
@@ -75,6 +83,51 @@ function makeHandlers(logger) {
         return callback({
           code: grpc.status.INTERNAL,
           message: 'failed to create user',
+        });
+      }
+    },
+
+    async AuthenticateUser(call, callback) {
+      const parsed = loginSchema.safeParse({
+        email: call.request.email,
+        password: call.request.password,
+      });
+      if (!parsed.success) {
+        // Even validation errors are reported as UNAUTHENTICATED so the
+        // attacker cannot distinguish malformed input from wrong credentials.
+        return callback(GENERIC_UNAUTHENTICATED);
+      }
+
+      const email = parsed.data.email.toLowerCase();
+      try {
+        const row = await db.getUserByEmail(email);
+        if (!row) {
+          logger.warn(
+            { event: 'auth.login.fail', reason: 'no_user', email_domain: email.split('@')[1] },
+            'login failed',
+          );
+          return callback(GENERIC_UNAUTHENTICATED);
+        }
+
+        const ok = await verifyPassword(parsed.data.password, row.password_hash);
+        if (!ok) {
+          logger.warn(
+            { event: 'auth.login.fail', reason: 'bad_password', email_domain: email.split('@')[1] },
+            'login failed',
+          );
+          return callback(GENERIC_UNAUTHENTICATED);
+        }
+
+        logger.info(
+          { event: 'auth.login', user_id: row.id, email_domain: email.split('@')[1] },
+          'user logged in',
+        );
+        return callback(null, { user: toPublicUser(row) });
+      } catch (err) {
+        logger.error({ err }, 'AuthenticateUser failed');
+        return callback({
+          code: grpc.status.INTERNAL,
+          message: 'failed to authenticate user',
         });
       }
     },

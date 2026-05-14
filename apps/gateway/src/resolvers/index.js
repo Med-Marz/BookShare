@@ -4,6 +4,7 @@ const userResolvers = require('./userResolvers');
 module.exports = {
   Query: {
     _empty: () => null,
+    ...userResolvers.Query,
   },
   Mutation: {
     ...userResolvers.Mutation,

@@ -1,11 +1,14 @@
 # BookShare GraphQL schema.
 # Loaded by apps/gateway/src/index.js via fs.readFileSync.
-# Types grow story by story; this file starts with the signup mutation only.
+# Types grow story by story.
 
 type User {
   id: ID!
   email: String!
   display_name: String!
+  phone: String
+  address: String
+  created_at: String
 }
 
 type AuthPayload {
@@ -21,12 +24,22 @@ input SignupInput {
   address: String!
 }
 
+input UpdateProfileInput {
+  display_name: String
+  phone: String
+  address: String
+}
+
 type Query {
-  # Heartbeat field — always returns null. Removed once real queries arrive.
+  # Heartbeat field — always returns null. Removed once we have richer queries.
   _empty: String
+
+  # The authenticated user's full profile. Requires a valid JWT.
+  profile: User!
 }
 
 type Mutation {
   signup(input: SignupInput!): AuthPayload!
   login(email: String!, password: String!): AuthPayload!
+  updateProfile(input: UpdateProfileInput!): User!
 }

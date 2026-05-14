@@ -1,6 +1,8 @@
 const grpc = require('@grpc/grpc-js');
 const { GraphQLError } = require('graphql');
 
+const userClient = require('../clients/userClient');
+const { makeMetadata } = require('../clients/grpcMetadata');
 const { runSignup } = require('../auth/signupFlow');
 const { runLogin } = require('../auth/loginFlow');
 
@@ -39,7 +41,25 @@ function grpcErrorToGraphQL(err) {
   }
 }
 
+function unauthenticated() {
+  return new GraphQLError('authentication required', {
+    extensions: { code: 'AUTHENTICATION_REQUIRED', http: { status: 401 } },
+  });
+}
+
 module.exports = {
+  Query: {
+    profile: async (_parent, _args, ctx) => {
+      if (!ctx?.userId) throw unauthenticated();
+      try {
+        const { user } = await userClient.getUser({ user_id: ctx.userId });
+        return user;
+      } catch (err) {
+        throw grpcErrorToGraphQL(err);
+      }
+    },
+  },
+
   Mutation: {
     signup: async (_parent, { input }) => {
       try {
@@ -52,6 +72,22 @@ module.exports = {
     login: async (_parent, { email, password }) => {
       try {
         return await runLogin({ email, password });
+      } catch (err) {
+        throw grpcErrorToGraphQL(err);
+      }
+    },
+
+    updateProfile: async (_parent, { input }, ctx) => {
+      if (!ctx?.userId) throw unauthenticated();
+      // Drop undefined/null/empty keys before forwarding so the user-service
+      // treats them as "absent" (proto3 empty-string semantics).
+      const patch = { user_id: ctx.userId };
+      if (input.display_name) patch.display_name = input.display_name;
+      if (input.phone) patch.phone = input.phone;
+      if (input.address) patch.address = input.address;
+      try {
+        const { user } = await userClient.updateUser(patch, makeMetadata(ctx.userId));
+        return user;
       } catch (err) {
         throw grpcErrorToGraphQL(err);
       }

@@ -12,4 +12,11 @@ const signupBodySchema = z.object({
   address: z.string().trim().min(1, 'address is required'),
 });
 
-module.exports = { signupBodySchema };
+// Login body. Loose validation on purpose — any malformation is reported as
+// UNAUTHENTICATED downstream so attackers cannot probe input shape.
+const loginBodySchema = z.object({
+  email: z.string().trim().min(1),
+  password: z.string().min(1),
+});
+
+module.exports = { signupBodySchema, loginBodySchema };

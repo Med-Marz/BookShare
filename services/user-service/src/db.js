@@ -49,6 +49,48 @@ function getUserByEmail(email) {
   });
 }
 
+// Look up a user by primary key. Returns null when no row matches.
+function getUserById(id) {
+  return new Promise((resolve, reject) => {
+    db.get('SELECT * FROM users WHERE id = ?', [id], (err, row) => {
+      if (err) return reject(err);
+      resolve(row || null);
+    });
+  });
+}
+
+// Update editable profile fields. Builds the SET clause dynamically so empty
+// strings (proto3 "absent" sentinel) leave the column untouched. Returns the
+// fresh row, or null if no row matched.
+function updateUser({ id, display_name, phone, address }) {
+  const sets = [];
+  const params = [];
+  if (display_name) {
+    sets.push('display_name = ?');
+    params.push(display_name);
+  }
+  if (phone) {
+    sets.push('phone = ?');
+    params.push(phone);
+  }
+  if (address) {
+    sets.push('address = ?');
+    params.push(address);
+  }
+  if (sets.length === 0) {
+    // Nothing to update — return the current row unchanged.
+    return getUserById(id);
+  }
+  params.push(id);
+  return new Promise((resolve, reject) => {
+    db.run(`UPDATE users SET ${sets.join(', ')} WHERE id = ?`, params, function (err) {
+      if (err) return reject(err);
+      if (this.changes === 0) return resolve(null);
+      getUserById(id).then(resolve).catch(reject);
+    });
+  });
+}
+
 // Insert a new user row. The caller is responsible for hashing the password.
 function insertUser({ id, email, password_hash, display_name, phone, address, created_at }) {
   return new Promise((resolve, reject) => {
@@ -71,4 +113,4 @@ function close() {
   });
 }
 
-module.exports = { init, getUserByEmail, insertUser, close };
+module.exports = { init, getUserByEmail, getUserById, insertUser, updateUser, close };

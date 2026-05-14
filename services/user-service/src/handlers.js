@@ -2,7 +2,7 @@ const { randomUUID } = require('node:crypto');
 const grpc = require('@grpc/grpc-js');
 
 const db = require('./db');
-const { signupSchema, loginSchema } = require('./schemas');
+const { signupSchema, loginSchema, updateUserSchema } = require('./schemas');
 const { hashPassword, verifyPassword } = require('./auth');
 
 // Generic UNAUTHENTICATED — never distinguishes which check failed, so an
@@ -84,6 +84,80 @@ function makeHandlers(logger) {
           code: grpc.status.INTERNAL,
           message: 'failed to create user',
         });
+      }
+    },
+
+    async GetUser(call, callback) {
+      const userId = call.request.user_id;
+      if (!userId) {
+        return callback({
+          code: grpc.status.INVALID_ARGUMENT,
+          message: 'user_id is required',
+        });
+      }
+      try {
+        const row = await db.getUserById(userId);
+        if (!row) {
+          return callback({ code: grpc.status.NOT_FOUND, message: 'user not found' });
+        }
+        return callback(null, { user: toPublicUser(row) });
+      } catch (err) {
+        logger.error({ err }, 'GetUser failed');
+        return callback({ code: grpc.status.INTERNAL, message: 'failed to read user' });
+      }
+    },
+
+    async UpdateUser(call, callback) {
+      const userId = call.request.user_id;
+      // x-user-id metadata is set by the gateway (one of grpc's special
+      // ascii-string headers). Reject any mismatch — only the authenticated
+      // user can update their own profile.
+      const metaUser = call.metadata.get('x-user-id')[0];
+      if (!metaUser || metaUser !== userId) {
+        return callback({
+          code: grpc.status.PERMISSION_DENIED,
+          message: 'can only update your own profile',
+        });
+      }
+
+      // Defence in depth: the .proto has no email field, but reject anyway
+      // if one is somehow set on the underlying object.
+      if (Object.prototype.hasOwnProperty.call(call.request, 'email') && call.request.email) {
+        return callback({
+          code: grpc.status.INVALID_ARGUMENT,
+          message: 'email is immutable',
+        });
+      }
+
+      // Empty strings are proto3 "absent" — drop them before validation so
+      // the schema only sees keys the client actually wants to update.
+      const candidate = {};
+      if (call.request.display_name) candidate.display_name = call.request.display_name;
+      if (call.request.phone) candidate.phone = call.request.phone;
+      if (call.request.address) candidate.address = call.request.address;
+
+      const parsed = updateUserSchema.safeParse(candidate);
+      if (!parsed.success) {
+        return callback(zodErrorToGrpc(parsed.error));
+      }
+
+      if (Object.keys(parsed.data).length === 0) {
+        return callback({
+          code: grpc.status.INVALID_ARGUMENT,
+          message: 'at least one of display_name, phone, address must be supplied',
+        });
+      }
+
+      try {
+        const row = await db.updateUser({ id: userId, ...parsed.data });
+        if (!row) {
+          return callback({ code: grpc.status.NOT_FOUND, message: 'user not found' });
+        }
+        logger.info({ event: 'user.updated', user_id: userId }, 'profile updated');
+        return callback(null, { user: toPublicUser(row) });
+      } catch (err) {
+        logger.error({ err }, 'UpdateUser failed');
+        return callback({ code: grpc.status.INTERNAL, message: 'failed to update user' });
       }
     },
 

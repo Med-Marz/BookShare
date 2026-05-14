@@ -19,4 +19,14 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
-module.exports = { signupSchema, loginSchema };
+// Profile update validation — every supplied field must be non-empty.
+// .strict() rejects unknown keys (notably `email`, which is immutable).
+const updateUserSchema = z
+  .object({
+    display_name: z.string().trim().min(1, 'display_name cannot be empty').optional(),
+    phone: z.string().trim().min(1, 'phone cannot be empty').optional(),
+    address: z.string().trim().min(1, 'address cannot be empty').optional(),
+  })
+  .strict();
+
+module.exports = { signupSchema, loginSchema, updateUserSchema };

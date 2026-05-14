@@ -25,10 +25,19 @@ services:
     image: apache/kafka:3.9.0
     container_name: bookshare-kafka
     networks: [bookshare-net]
+    # Run as root: the named volume kafka-logs is initialised owned by root, and
+    # apache/kafka's default uid 1000 (appuser) cannot write to it. Running as
+    # root inside this container side-steps the chown dance; image entrypoint is
+    # idempotent under root.
+    user: "0:0"
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      # Bind every listener to the container's routable Docker hostname.
+      # apache/kafka 3.9 rejects 0.0.0.0 in any "advertised" derivation and is
+      # picky when CONTROLLER has no explicit advertised address — this avoids
+      # both traps in a single-node KRaft layout.
+      KAFKA_LISTENERS: PLAINTEXT://kafka:9092,CONTROLLER://kafka:9093
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
@@ -42,7 +51,9 @@ services:
     volumes:
       - kafka-logs:/tmp/kraft-combined-logs
     healthcheck:
-      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1"]
+      # Use the routable hostname because KAFKA_LISTENERS now binds to `kafka:9092`
+      # (not 0.0.0.0). Docker's DNS resolves `kafka` to the container itself.
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list >/dev/null 2>&1"]
       interval: 10s
       timeout: 5s
       retries: 30
@@ -240,7 +251,9 @@ services:
     depends_on:
       gateway: { condition: service_healthy }
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/ >/dev/null || exit 1"]
+      # Use explicit IPv4 — nginx:alpine resolves `localhost` to ::1, but nginx
+      # binds only to IPv4 by default, so localhost would time out.
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/ >/dev/null || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5

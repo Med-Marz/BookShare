@@ -2,27 +2,34 @@
   "info": {
     "name": "BookShare",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "BookShare REST + GraphQL test collection. Grows story by story. Run with `newman run postman/BookShare.postman_collection.json` for CI-style verification."
+    "description": "BookShare REST + GraphQL test collection. Grows story by story. Run with `npx newman run postman/BookShare.postman_collection.json` for CI-style verification."
   },
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:4000", "type": "string" },
     { "key": "token", "value": "", "type": "string" },
-    { "key": "userId", "value": "", "type": "string" }
+    { "key": "userId", "value": "", "type": "string" },
+    { "key": "testEmail", "value": "", "type": "string" },
+    { "key": "testPassword", "value": "correctbattery", "type": "string" },
+    { "key": "gqlEmail", "value": "", "type": "string" }
   ],
   "item": [
     {
       "name": "Auth",
-      "description": "Signup, login, logout. Story 1.2 introduces signup; 1.3 adds login + logout.",
+      "description": "Signup + login. Each request runs in order; the signup happy-path saves the test email/password so later requests can reuse them.",
       "item": [
         {
           "name": "POST /auth/signup — happy path",
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/v1/auth/signup", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "signup"] },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "signup"]
+            },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"alice+{{$timestamp}}@example.com\",\n  \"password\": \"correctbattery\",\n  \"display_name\": \"Alice\",\n  \"phone\": \"+216 22 000 000\",\n  \"address\": \"Tunis, Tunisia\"\n}"
+              "raw": "{\n  \"email\": \"alice+{{$timestamp}}@example.com\",\n  \"password\": \"{{testPassword}}\",\n  \"display_name\": \"Alice\",\n  \"phone\": \"+216 22 000 000\",\n  \"address\": \"Tunis, Tunisia\"\n}"
             }
           },
           "event": [
@@ -38,7 +45,8 @@
                   "pm.test('returns user.email', () => pm.expect(body.user.email).to.be.a('string'));",
                   "pm.test('returns user.display_name', () => pm.expect(body.user.display_name).to.be.a('string'));",
                   "pm.collectionVariables.set('token', body.token);",
-                  "pm.collectionVariables.set('userId', body.user.id);"
+                  "pm.collectionVariables.set('userId', body.user.id);",
+                  "pm.collectionVariables.set('testEmail', body.user.email);"
                 ]
               }
             }
@@ -49,10 +57,14 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/v1/auth/signup", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "signup"] },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "signup"]
+            },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"duplicate@example.com\",\n  \"password\": \"correctbattery\",\n  \"display_name\": \"First\",\n  \"phone\": \"+216 22 000 001\",\n  \"address\": \"Sfax\"\n}"
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\",\n  \"display_name\": \"Alice 2\",\n  \"phone\": \"+216 22 000 001\",\n  \"address\": \"Sfax\"\n}"
             }
           },
           "event": [
@@ -61,14 +73,9 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "// Run the request twice in sequence — second one should 409.",
-                  "// Newman runs requests once each; for an end-to-end newman run, run /auth/signup happy path twice.",
-                  "// Here we accept 201 (first time) or 409 (subsequent).",
-                  "pm.test('status is 201 or 409', () => pm.expect(pm.response.code).to.be.oneOf([201, 409]));",
-                  "if (pm.response.code === 409) {",
-                  "  const body = pm.response.json();",
-                  "  pm.test('error.code is CONFLICT', () => pm.expect(body.error.code).to.eql('CONFLICT'));",
-                  "}"
+                  "pm.test('status is 409', () => pm.response.to.have.status(409));",
+                  "const body = pm.response.json();",
+                  "pm.test('error.code is CONFLICT', () => pm.expect(body.error.code).to.eql('CONFLICT'));"
                 ]
               }
             }
@@ -79,10 +86,14 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/v1/auth/signup", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "signup"] },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "signup"]
+            },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"short@example.com\",\n  \"password\": \"short\",\n  \"display_name\": \"Shorty\",\n  \"phone\": \"+216 22 000 002\",\n  \"address\": \"Tunis\"\n}"
+              "raw": "{\n  \"email\": \"short+{{$timestamp}}@example.com\",\n  \"password\": \"short\",\n  \"display_name\": \"Shorty\",\n  \"phone\": \"+216 22 000 002\",\n  \"address\": \"Tunis\"\n}"
             }
           },
           "event": [
@@ -99,22 +110,219 @@
               }
             }
           ]
+        },
+        {
+          "name": "POST /auth/login — happy path",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('returns a token', () => pm.expect(body.token).to.be.a('string').and.not.empty);",
+                  "pm.test('returns user.id', () => pm.expect(body.user.id).to.eql(pm.collectionVariables.get('userId')));",
+                  "pm.test('returns user.email matches signup email', () => pm.expect(body.user.email).to.eql(pm.collectionVariables.get('testEmail')));",
+                  "pm.collectionVariables.set('token', body.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /auth/login — wrong password (401)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"DEFINITELY-NOT-THE-RIGHT-PASSWORD\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 401', () => pm.response.to.have.status(401));",
+                  "const body = pm.response.json();",
+                  "pm.test('error.code is AUTHENTICATION_REQUIRED', () => pm.expect(body.error.code).to.eql('AUTHENTICATION_REQUIRED'));",
+                  "pm.test('message is generic', () => pm.expect(body.error.message.toLowerCase()).to.match(/email or password/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /auth/login — unknown email (401)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nobody+{{$timestamp}}@example.com\",\n  \"password\": \"whatever\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 401', () => pm.response.to.have.status(401));",
+                  "const body = pm.response.json();",
+                  "pm.test('error.code is AUTHENTICATION_REQUIRED', () => pm.expect(body.error.code).to.eql('AUTHENTICATION_REQUIRED'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "JWT middleware",
+      "description": "Smoke-tests that the gateway gates protected /api/v1/* paths after enabling JWT verification in story 1.3.",
+      "item": [
+        {
+          "name": "GET /api/v1 — public discovery banner (200)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('payload includes name', () => pm.expect(body.name).to.eql('BookShare API'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/foobar — protected, no token (401)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/foobar",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "foobar"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 401', () => pm.response.to.have.status(401));",
+                  "const body = pm.response.json();",
+                  "pm.test('error.code is AUTHENTICATION_REQUIRED', () => pm.expect(body.error.code).to.eql('AUTHENTICATION_REQUIRED'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/foobar — protected, bad token (401)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer not-a-valid-jwt" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/foobar",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "foobar"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 401', () => pm.response.to.have.status(401));",
+                  "const body = pm.response.json();",
+                  "pm.test('error.code is AUTHENTICATION_REQUIRED', () => pm.expect(body.error.code).to.eql('AUTHENTICATION_REQUIRED'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/foobar — protected, valid token (404)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/foobar",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "foobar"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 404 — auth passed, route just does not exist yet', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
     {
       "name": "GraphQL",
-      "description": "Signup mutation via the /graphql endpoint.",
+      "description": "Signup and login via the /graphql endpoint.",
       "item": [
         {
           "name": "mutation signup — happy path",
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql"]
+            },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"query\": \"mutation Signup($input: SignupInput!) { signup(input: $input) { token user { id email display_name } } }\",\n  \"variables\": {\n    \"input\": {\n      \"email\": \"gql+{{$timestamp}}@example.com\",\n      \"password\": \"correctbattery\",\n      \"display_name\": \"GraphQL User\",\n      \"phone\": \"+216 22 100 000\",\n      \"address\": \"Tunis\"\n    }\n  }\n}"
+              "raw": "{\n  \"query\": \"mutation Signup($input: SignupInput!) { signup(input: $input) { token user { id email display_name } } }\",\n  \"variables\": {\n    \"input\": {\n      \"email\": \"gql+{{$timestamp}}@example.com\",\n      \"password\": \"{{testPassword}}\",\n      \"display_name\": \"GraphQL User\",\n      \"phone\": \"+216 22 100 000\",\n      \"address\": \"Tunis\"\n    }\n  }\n}"
             }
           },
           "event": [
@@ -127,7 +335,69 @@
                   "const body = pm.response.json();",
                   "pm.test('no GraphQL errors', () => pm.expect(body.errors).to.be.undefined);",
                   "pm.test('returns token', () => pm.expect(body.data.signup.token).to.be.a('string'));",
-                  "pm.test('returns user.id', () => pm.expect(body.data.signup.user.id).to.be.a('string'));"
+                  "pm.test('returns user.id', () => pm.expect(body.data.signup.user.id).to.be.a('string'));",
+                  "pm.collectionVariables.set('gqlEmail', body.data.signup.user.email);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "mutation login — happy path",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation Login($email: String!, $password: String!) { login(email: $email, password: $password) { token user { id email display_name } } }\",\n  \"variables\": {\n    \"email\": \"{{gqlEmail}}\",\n    \"password\": \"{{testPassword}}\"\n  }\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('no GraphQL errors', () => pm.expect(body.errors).to.be.undefined);",
+                  "pm.test('returns token', () => pm.expect(body.data.login.token).to.be.a('string'));",
+                  "pm.test('returns matching email', () => pm.expect(body.data.login.user.email).to.eql(pm.collectionVariables.get('gqlEmail')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "mutation login — wrong password (401)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation Login($email: String!, $password: String!) { login(email: $email, password: $password) { token } }\",\n  \"variables\": {\n    \"email\": \"{{gqlEmail}}\",\n    \"password\": \"DEFINITELY-NOT-THE-RIGHT-PASSWORD\"\n  }\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 401 (Apollo respects http.status extension)', () => pm.response.to.have.status(401));",
+                  "const body = pm.response.json();",
+                  "pm.test('GraphQL errors present', () => pm.expect(body.errors).to.be.an('array').and.not.empty);",
+                  "pm.test('extensions.code is AUTHENTICATION_REQUIRED', () => pm.expect(body.errors[0].extensions.code).to.eql('AUTHENTICATION_REQUIRED'));"
                 ]
               }
             }

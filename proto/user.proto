@@ -20,7 +20,16 @@ service UserService {
   // generic message — never enumerate which field failed.
   rpc AuthenticateUser(AuthenticateUserRequest) returns (AuthenticateUserResponse);
 
-  // TODO: GetUser, UpdateUser (story 1.4)
+  // Look up a user by id. Story 1.4.
+  // Returns NOT_FOUND when the id has no row.
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+
+  // Update editable profile fields. Story 1.4.
+  // The handler enforces that x-user-id metadata matches the request user_id
+  // (PERMISSION_DENIED otherwise) and that the email field stays immutable.
+  // Empty-string scalars are treated as "leave unchanged" — at least one of
+  // display_name, phone, address must be non-empty (INVALID_ARGUMENT otherwise).
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
 }
 
 message User {
@@ -50,5 +59,26 @@ message AuthenticateUserRequest {
 }
 
 message AuthenticateUserResponse {
+  User user = 1;
+}
+
+message GetUserRequest {
+  string user_id = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+}
+
+message UpdateUserRequest {
+  string user_id = 1;
+  // Empty string = "do not update this field". At least one of these must
+  // be non-empty or the handler returns INVALID_ARGUMENT.
+  string display_name = 2;
+  string phone = 3;
+  string address = 4;
+}
+
+message UpdateUserResponse {
   User user = 1;
 }

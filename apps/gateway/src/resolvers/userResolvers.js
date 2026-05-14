@@ -2,6 +2,7 @@ const grpc = require('@grpc/grpc-js');
 const { GraphQLError } = require('graphql');
 
 const { runSignup } = require('../auth/signupFlow');
+const { runLogin } = require('../auth/loginFlow');
 
 // Translate a gRPC-style error (the shape that the gateway's clients + the
 // shared signupFlow throw) into a GraphQLError whose extensions.code matches
@@ -43,6 +44,14 @@ module.exports = {
     signup: async (_parent, { input }) => {
       try {
         return await runSignup(input);
+      } catch (err) {
+        throw grpcErrorToGraphQL(err);
+      }
+    },
+
+    login: async (_parent, { email, password }) => {
+      try {
+        return await runLogin({ email, password });
       } catch (err) {
         throw grpcErrorToGraphQL(err);
       }

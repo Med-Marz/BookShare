@@ -9,6 +9,7 @@ const { expressMiddleware } = require('@as-integrations/express5');
 
 const logger = require('./logger');
 const { errorHandler } = require('./errors');
+const { requireAuth, optionalAuthForGraphQL } = require('./auth');
 const resolvers = require('./resolvers');
 
 const PORT = Number.parseInt(process.env.PORT || '4000', 10);
@@ -44,20 +45,28 @@ async function start() {
   // 4. pino HTTP request logging.
   app.use(pinoHttp({ logger }));
 
-  // 5. JWT verification — story 1.3 enables this for /api/v1/* (skipping /auth/*).
-  //    For Story 1.1 it stays as a no-op skip.
-
   // ---- Health endpoint for Docker Compose healthcheck (no business logic) ----
   app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
-  // ---- REST routers under /api/v1 ----
+  // ---- PUBLIC routes under /api/v1 (no JWT required) ----
   app.get('/api/v1', (_req, res) => res.json({ name: 'BookShare API', version: 'v1' }));
   app.use('/api/v1/auth', require('./routes/auth'));
 
-  // ---- GraphQL — Apollo Server must start before mounting middleware ----
+  // ---- JWT gate: every /api/v1/* route mounted AFTER this line is protected.
+  // The discovery banner + /api/v1/auth/* land above this line and stay public.
+  app.use('/api/v1', requireAuth);
+
+  // ---- GraphQL — Apollo Server must start before mounting middleware.
+  // The context extracts the JWT's sub claim (or null) so resolvers can gate
+  // themselves; the /graphql endpoint stays publicly reachable.
   const apollo = new ApolloServer({ typeDefs, resolvers });
   await apollo.start();
-  app.use('/graphql', expressMiddleware(apollo));
+  app.use(
+    '/graphql',
+    expressMiddleware(apollo, {
+      context: async ({ req }) => optionalAuthForGraphQL(req),
+    }),
+  );
 
   // ---- Error envelope mapping — must be the LAST middleware ----
   app.use(errorHandler);

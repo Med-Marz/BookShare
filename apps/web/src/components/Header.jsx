@@ -1,14 +1,18 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { useApolloClient } from '@apollo/client/react';
 import { BookOpen, LogOut, PlusCircle, UserRound } from 'lucide-react';
 import useAuth from '../auth/useAuth';
 
 function Header() {
   const { token, currentUser, logout } = useAuth();
   const navigate = useNavigate();
+  const apollo = useApolloClient();
   const isAuthenticated = Boolean(token);
 
-  function handleLogout() {
+  async function handleLogout() {
     logout();
+    // Drop any cached query results from the authenticated session.
+    await apollo.clearStore().catch(() => {});
     navigate('/');
   }
 

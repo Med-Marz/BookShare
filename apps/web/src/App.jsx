@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 
 import Header from './components/Header.jsx';
 import SignupPage from './pages/SignupPage.jsx';
+import LoginPage from './pages/LoginPage.jsx';
 
 // Placeholder for routes that still ship in later stories (1.3 → /login,
 // 1.4 → /me, 1.5 → /users/:id, epic 2 → /books/*, epic 4 → /reservations,
@@ -23,7 +24,7 @@ function App() {
       <Header />
       <Routes>
         <Route path="/" element={<Placeholder title="BookShare" />} />
-        <Route path="/login" element={<Placeholder title="Sign in" />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/me" element={<Placeholder title="My profile" />} />
         <Route path="/users/:id" element={<Placeholder title="User profile" />} />

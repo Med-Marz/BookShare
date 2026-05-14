@@ -38,4 +38,5 @@ function unary(method) {
 module.exports = {
   client,
   createUser: unary('CreateUser'),
+  authenticateUser: unary('AuthenticateUser'),
 };

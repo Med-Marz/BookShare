@@ -56,6 +56,9 @@ async function start() {
   // The discovery banner + /api/v1/auth/* land above this line and stay public.
   app.use('/api/v1', requireAuth);
 
+  // ---- PROTECTED routes (require valid JWT). Mounted after requireAuth.
+  app.use('/api/v1/profile', require('./routes/profile'));
+
   // ---- GraphQL — Apollo Server must start before mounting middleware.
   // The context extracts the JWT's sub claim (or null) so resolvers can gate
   // themselves; the /graphql endpoint stays publicly reachable.

@@ -56,12 +56,9 @@ async function start() {
   // ---- Health endpoint for Docker Compose healthcheck (no business logic) ----
   app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
-  // ---- REST router under /api/v1 — empty stub; real routes land in later stories ----
-  const restRouter = express.Router();
-  restRouter.get('/', (_req, res) =>
-    res.json({ name: 'BookShare API', version: 'v1', message: 'Routes land in later stories.' }),
-  );
-  app.use('/api/v1', restRouter);
+  // ---- REST routers under /api/v1 ----
+  app.get('/api/v1', (_req, res) => res.json({ name: 'BookShare API', version: 'v1' }));
+  app.use('/api/v1/auth', require('./routes/auth'));
 
   // ---- GraphQL — Apollo Server must start before mounting middleware ----
   const apollo = new ApolloServer({ typeDefs, resolvers });

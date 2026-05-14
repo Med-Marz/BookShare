@@ -1,0 +1,18 @@
+const express = require('express');
+const { runSignup } = require('../auth/signupFlow');
+
+const router = express.Router();
+
+// POST /api/v1/auth/signup — visitor creates an account.
+// On success: HTTP 201 with { token, user: { id, email, display_name } }.
+// Express 5 auto-forwards async rejections to the central errorHandler — no
+// try/catch needed in route handlers (architecture rule).
+router.post('/signup', async (req, res) => {
+  const result = await runSignup(req.body || {});
+  if (req.log) {
+    req.log.info({ event: 'auth.signup', user_id: result.user.id }, 'user signed up');
+  }
+  res.status(201).json(result);
+});
+
+module.exports = router;

@@ -39,4 +39,6 @@ module.exports = {
   client,
   createUser: unary('CreateUser'),
   authenticateUser: unary('AuthenticateUser'),
+  getUser: unary('GetUser'),
+  updateUser: unary('UpdateUser'),
 };

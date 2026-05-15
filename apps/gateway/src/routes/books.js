@@ -132,4 +132,22 @@ router.put('/:id', express.json(), async (req, res, next) => {
   }
 });
 
+// DELETE /api/v1/books/:id — authenticated, owner-only.
+// Returns 204 No Content on success. The book-service handler also blocks the
+// delete when the book's status is Reserved or Lent Out (409 FAILED_PRECONDITION).
+router.delete('/:id', async (req, res, next) => {
+  try {
+    await bookClient.deleteBook(
+      { book_id: req.params.id },
+      makeMetadata(req.userId),
+    );
+    if (req.log) {
+      req.log.info({ event: 'book.delete', book_id: req.params.id }, 'book deleted');
+    }
+    res.status(204).end();
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;

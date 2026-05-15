@@ -6,6 +6,7 @@ module.exports = {
   Query: {
     _empty: () => null,
     ...userResolvers.Query,
+    ...bookResolvers.Query,
   },
   Mutation: {
     ...userResolvers.Mutation,
@@ -13,5 +14,8 @@ module.exports = {
   },
   User: {
     ...bookResolvers.User,
+  },
+  Book: {
+    ...bookResolvers.Book,
   },
 };

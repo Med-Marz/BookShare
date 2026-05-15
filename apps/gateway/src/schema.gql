@@ -53,11 +53,19 @@ type Mutation {
   login(email: String!, password: String!): AuthPayload!
   updateProfile(input: UpdateProfileInput!): User!
   addBook(input: AddBookInput!): Book!
+  editBook(id: ID!, input: EditBookInput!): Book!
+}
+
+extend type Query {
+  book(id: ID!): Book!
 }
 
 type Book {
   id: ID!
   owner_id: ID!
+  # The owning user — resolved by fanning out to user-service. Anonymous
+  # viewers see contact fields nulled per the same gating rule as user(id).
+  owner: User!
   title: String!
   author: String!
   year_published: Int!
@@ -73,4 +81,10 @@ input AddBookInput {
   year_published: Int!
   cover_base64: String!         # base64-encoded image bytes
   cover_content_type: String!   # image/jpeg | image/png | image/webp
+}
+
+input EditBookInput {
+  title: String
+  author: String
+  year_published: Int
 }

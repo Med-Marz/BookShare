@@ -2,6 +2,7 @@ const grpc = require('@grpc/grpc-js');
 const { GraphQLError } = require('graphql');
 
 const bookClient = require('../clients/bookClient');
+const userClient = require('../clients/userClient');
 const { makeMetadata } = require('../clients/grpcMetadata');
 
 const ALLOWED = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -12,7 +13,7 @@ function gqlError(code, message, status) {
 }
 
 function unauthenticated() {
-  return gqlError('AUTHENTICATION_REQUIRED', 'sign in to add a book', 401);
+  return gqlError('AUTHENTICATION_REQUIRED', 'sign in required', 401);
 }
 
 function grpcErrorToGraphQL(err) {
@@ -32,6 +33,17 @@ function grpcErrorToGraphQL(err) {
 }
 
 module.exports = {
+  Query: {
+    book: async (_parent, { id }) => {
+      try {
+        const { book } = await bookClient.getBook({ book_id: id });
+        return book;
+      } catch (err) {
+        throw grpcErrorToGraphQL(err);
+      }
+    },
+  },
+
   User: {
     // Resolves whenever a GraphQL query selects User.books. Fires one gRPC
     // call to book-service per user in the result set — Apollo runs sibling
@@ -51,7 +63,53 @@ module.exports = {
     },
   },
 
+  Book: {
+    // The flagship cross-service join — fans out to user-service for the
+    // owner record. Anonymous viewers see contact fields nulled per the
+    // contact-info gating rule already used by Query.user.
+    owner: async (parent, _args, ctx) => {
+      if (!parent?.owner_id) return null;
+      try {
+        const { user } = await userClient.getUser({ user_id: parent.owner_id });
+        if (!ctx?.userId) {
+          return {
+            id: user.id,
+            display_name: user.display_name,
+            email: null,
+            phone: null,
+            address: null,
+            created_at: null,
+          };
+        }
+        return user;
+      } catch {
+        // user-service failures should not break book(id) — return a stub.
+        return {
+          id: parent.owner_id,
+          display_name: 'Unknown',
+          email: null,
+          phone: null,
+          address: null,
+          created_at: null,
+        };
+      }
+    },
+  },
+
   Mutation: {
+    editBook: async (_parent, { id, input }, ctx) => {
+      if (!ctx?.userId) throw unauthenticated();
+      try {
+        const { book } = await bookClient.editBook(
+          { book_id: id, ...input },
+          makeMetadata(ctx.userId),
+        );
+        return book;
+      } catch (err) {
+        throw grpcErrorToGraphQL(err);
+      }
+    },
+
     addBook: async (_parent, { input }, ctx) => {
       if (!ctx?.userId) throw unauthenticated();
 

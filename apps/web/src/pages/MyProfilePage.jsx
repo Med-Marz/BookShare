@@ -1,9 +1,15 @@
-import { useCallback, useEffect, useState } from 'react';
-import { BookOpen, BookOpenCheck, CheckCircle2 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { BookOpen, BookOpenCheck, CheckCircle2, Mail } from 'lucide-react';
 import { getProfile, updateProfile } from '../api/usersApi';
 import useAuth from '../auth/useAuth';
 
 const INITIAL = { display_name: '', phone: '', address: '' };
+
+function initialsFrom(name) {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/).slice(0, 2);
+  return parts.map((p) => p[0]?.toUpperCase() ?? '').join('') || '?';
+}
 
 function MyProfilePage() {
   const { token, login } = useAuth();
@@ -41,7 +47,6 @@ function MyProfilePage() {
     };
   }, []);
 
-  // Auto-dismiss the success pill after 3 seconds.
   useEffect(() => {
     if (!success) return;
     const id = setTimeout(() => setSuccess(false), 3000);
@@ -55,11 +60,12 @@ function MyProfilePage() {
     setSuccess(false);
   }, []);
 
+  const initials = useMemo(() => initialsFrom(profile?.display_name), [profile?.display_name]);
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (!profile) return;
 
-    // Build patch with only the fields that actually changed.
     const patch = {};
     if (form.display_name.trim() && form.display_name !== profile.display_name) {
       patch.display_name = form.display_name.trim();
@@ -87,7 +93,6 @@ function MyProfilePage() {
         address: updated.address,
       });
       setSuccess(true);
-      // Refresh AuthContext so the navbar reflects the new display name.
       if (token) login(token, updated);
     } catch (err) {
       setError(err?.response?.data?.error?.message || 'Could not save your changes.');
@@ -116,23 +121,40 @@ function MyProfilePage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="font-display text-4xl text-sepia">My profile</h1>
-      <p className="mt-2 text-sepiaSoft">
+    <main className="mx-auto max-w-3xl px-6 py-12 animate-fade-up">
+      {/* ── Profile hero ── */}
+      <section className="card-surface flex flex-col items-start gap-5 p-7 sm:flex-row sm:items-center">
+        <span className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-panel-warmth font-display text-2xl text-ivory shadow-shelf">
+          {initials}
+        </span>
+        <div className="flex-1">
+          <p className="text-xs uppercase tracking-[0.18em] text-sepiaSoft">My profile</p>
+          <h1 className="mt-1 font-display text-3xl text-sepiaDark sm:text-4xl">
+            {profile.display_name}
+          </h1>
+          <p className="mt-2 inline-flex items-center gap-2 text-sm text-sepiaSoft">
+            <Mail className="h-4 w-4" aria-hidden="true" />
+            {profile.email}
+          </p>
+        </div>
+      </section>
+
+      <p className="mt-6 text-sepiaSoft">
         Keep your contact details current so other readers can reach you for handoffs.
       </p>
 
-      {/* ---- Editable profile card ---- */}
-      <section className="mt-8 rounded-lg border border-paper bg-white/70 p-6 shadow-shelf">
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+      {/* ── Editable profile form ── */}
+      <section className="card-surface mt-6 p-7">
+        <h2 className="font-display text-xl text-sepiaDark">Account details</h2>
+        <form onSubmit={handleSubmit} className="mt-5 space-y-5" noValidate>
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-sepia">Email</span>
+            <span className="mb-1.5 block text-sm font-medium text-sepia">Email</span>
             <input
               type="email"
               value={profile.email}
               readOnly
               disabled
-              className="w-full cursor-not-allowed rounded-md border border-paper bg-paper/30 px-3 py-2 text-sepiaSoft"
+              className="w-full cursor-not-allowed rounded-md border border-paperDark bg-paper/40 px-3 py-2.5 text-sepiaSoft"
             />
             <span className="mt-1 block text-xs text-sepiaSoft">
               Email is permanent and cannot be changed.
@@ -171,27 +193,23 @@ function MyProfilePage() {
             </p>
           )}
 
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-full bg-bordeaux px-4 py-2 font-semibold text-ivory shadow-shelf hover:bg-sepia disabled:cursor-not-allowed disabled:opacity-60"
-          >
+          <button type="submit" disabled={saving} className="btn-primary">
             {saving ? 'Saving…' : 'Update profile'}
           </button>
         </form>
       </section>
 
-      {/* ---- Empty-state cards for upcoming features ---- */}
-      <section className="mt-10 grid gap-4 md:grid-cols-2">
+      {/* ── Empty-state cards ── */}
+      <section className="mt-10 grid gap-5 md:grid-cols-2">
         <EmptyCard
           icon={<BookOpen className="h-5 w-5 text-bordeaux" aria-hidden="true" />}
           title="Books you've listed"
-          copy="Lands in epic 2 — add a book with a cover image and watch it appear here."
+          copy="Books you add to BookShare will appear here, ready to be reserved by other readers."
         />
         <EmptyCard
           icon={<BookOpenCheck className="h-5 w-5 text-bordeaux" aria-hidden="true" />}
           title="Your reservations"
-          copy="Lands in epic 4 — reserve a book and the activity will show up here."
+          copy="When you reserve a book, the title and the owner's contact info show up here until the loan is closed."
         />
       </section>
     </main>
@@ -201,26 +219,22 @@ function MyProfilePage() {
 function Field({ label, name, type = 'text', value, onChange }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-medium text-sepia">{label}</span>
-      <input
-        name={name}
-        type={type}
-        value={value}
-        onChange={onChange}
-        className="w-full rounded-md border border-paper bg-white/80 px-3 py-2 text-ink shadow-shelf focus:border-bordeaux focus:outline-none focus:ring-2 focus:ring-bordeaux/30"
-      />
+      <span className="mb-1.5 block text-sm font-medium text-sepia">{label}</span>
+      <input name={name} type={type} value={value} onChange={onChange} className="input-field" />
     </label>
   );
 }
 
 function EmptyCard({ icon, title, copy }) {
   return (
-    <div className="rounded-lg border border-dashed border-paper bg-ivory/60 p-5">
+    <div className="rounded-2xl border border-dashed border-paperDark bg-ivory/70 p-6">
       <div className="flex items-center gap-2">
-        {icon}
-        <h2 className="font-display text-lg text-sepia">{title}</h2>
+        <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-cream">
+          {icon}
+        </span>
+        <h2 className="font-display text-lg text-sepiaDark">{title}</h2>
       </div>
-      <p className="mt-2 text-sm text-sepiaSoft">{copy}</p>
+      <p className="mt-3 text-sm text-sepiaSoft">{copy}</p>
     </div>
   );
 }

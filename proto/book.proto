@@ -13,6 +13,7 @@ service BookService {
   rpc GetBook (GetBookRequest) returns (GetBookResponse);
   rpc EditBook (EditBookRequest) returns (EditBookResponse);
   rpc ReplaceCover (ReplaceCoverRequest) returns (ReplaceCoverResponse);
+  rpc DeleteBook (DeleteBookRequest) returns (DeleteBookResponse);
   rpc GetCoverBytes (GetCoverBytesRequest) returns (GetCoverBytesResponse);
   rpc ListBooksByOwner (ListBooksByOwnerRequest) returns (ListBooksByOwnerResponse);
 }
@@ -89,3 +90,9 @@ message ReplaceCoverRequest {
 message ReplaceCoverResponse {
   Book book = 1;
 }
+
+message DeleteBookRequest {
+  string book_id = 1;
+}
+
+message DeleteBookResponse {}

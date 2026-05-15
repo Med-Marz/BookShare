@@ -74,6 +74,9 @@ async function start() {
   // tries routers in registration order, so the public GET hits first.
   app.use('/api/v1/books', require('./routes/booksPublic'));
 
+  // Public Home endpoints (recently added books, etc.).
+  app.use('/api/v1/home', require('./routes/home'));
+
   // ---- JWT gate: every /api/v1/* route mounted AFTER this line is protected.
   // The discovery banner + /api/v1/auth/* + /api/v1/users/* land above this
   // line and stay public.

@@ -352,6 +352,25 @@ function makeHandlers(logger) {
       }
     },
 
+    async ListRecentBooks(call, callback) {
+      const raw = call.request?.limit ?? 0;
+      const limit = Math.min(Math.max(raw || 12, 1), 50);
+      try {
+        const docs = await db.collection.find().exec();
+        const books = docs
+          .map((d) => d.toMutableJSON())
+          .sort((a, b) => b.created_at.localeCompare(a.created_at))
+          .slice(0, limit);
+        return callback(null, { books });
+      } catch (err) {
+        logger.error({ err }, 'ListRecentBooks failed');
+        return callback({
+          code: grpc.status.INTERNAL,
+          message: 'failed to list recent books',
+        });
+      }
+    },
+
     async ListBooksByOwner(call, callback) {
       const ownerId = call.request?.owner_id;
       if (!ownerId) {

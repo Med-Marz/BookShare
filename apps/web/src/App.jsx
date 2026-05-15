@@ -62,6 +62,15 @@ function App() {
           }
         />
         <Route
+          path="/search"
+          element={
+            <Placeholder
+              title="Search"
+              copy="The search results page lands in the next story. Your query is preserved in the URL."
+            />
+          }
+        />
+        <Route
           path="/books/new"
           element={
             <RequireAuth>

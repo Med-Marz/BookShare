@@ -11,6 +11,7 @@ package book;
 service BookService {
   rpc AddBook (AddBookRequest) returns (AddBookResponse);
   rpc GetCoverBytes (GetCoverBytesRequest) returns (GetCoverBytesResponse);
+  rpc ListBooksByOwner (ListBooksByOwnerRequest) returns (ListBooksByOwnerResponse);
 }
 
 message Book {
@@ -45,4 +46,14 @@ message GetCoverBytesRequest {
 message GetCoverBytesResponse {
   bytes  content = 1;
   string content_type = 2;
+}
+
+message ListBooksByOwnerRequest {
+  string owner_id = 1;
+  int32  limit = 2;   // 0 = no limit; ignored in v1 (returns all)
+  int32  offset = 3;  // ignored in v1
+}
+
+message ListBooksByOwnerResponse {
+  repeated Book books = 1;
 }

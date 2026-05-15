@@ -15,6 +15,10 @@
 
   body {
     @apply bg-ivory text-ink font-body antialiased;
+    background-image:
+      radial-gradient(ellipse at top, rgba(243, 235, 221, 0.45) 0%, transparent 60%),
+      radial-gradient(ellipse at bottom right, rgba(232, 221, 201, 0.28) 0%, transparent 55%);
+    background-attachment: fixed;
     font-feature-settings:
       'liga' 1,
       'kern' 1;
@@ -25,7 +29,8 @@
   h3,
   h4 {
     @apply font-display text-sepia;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
   }
 
   a {
@@ -34,5 +39,33 @@
 
   ::selection {
     @apply bg-paper text-sepia;
+  }
+
+  button,
+  a {
+    transition:
+      background-color 160ms ease,
+      color 160ms ease,
+      border-color 160ms ease,
+      transform 160ms ease,
+      box-shadow 160ms ease;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-bordeaux px-5 py-2.5 font-semibold text-ivory shadow-shelf hover:bg-bordeauxDeep hover:shadow-shelfLg focus:outline-none focus:ring-2 focus:ring-bordeaux/40 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-paperDark bg-cream px-5 py-2.5 font-semibold text-sepia hover:border-sepiaSoft hover:text-sepiaDark focus:outline-none focus:ring-2 focus:ring-sepia/25;
+  }
+
+  .input-field {
+    @apply w-full rounded-md border border-paperDark bg-cream px-3 py-2.5 text-ink shadow-innerPaper focus:border-bordeaux focus:outline-none focus:ring-2 focus:ring-bordeaux/30;
+  }
+
+  .card-surface {
+    @apply rounded-2xl border border-paper bg-cream/85 shadow-card backdrop-blur-sm;
   }
 }

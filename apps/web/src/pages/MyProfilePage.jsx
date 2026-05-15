@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { BookOpen, BookOpenCheck, CheckCircle2, Mail } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { BookOpen, BookOpenCheck, CheckCircle2, Mail, PlusCircle } from 'lucide-react';
 import { getProfile, updateProfile } from '../api/usersApi';
+import { listBooksByOwner } from '../api/booksApi';
+import BookCard from '../components/BookCard.jsx';
 import useAuth from '../auth/useAuth';
 
 const INITIAL = { display_name: '', phone: '', address: '' };
@@ -19,24 +22,36 @@ function MyProfilePage() {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [books, setBooks] = useState([]);
+  const [booksLoading, setBooksLoading] = useState(true);
 
   // Fetch fresh on mount — never trust localStorage for the source of truth.
+  // Also fan out to the books endpoint once we know the user id.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const fresh = await getProfile();
-        if (!cancelled) {
-          setProfile(fresh);
-          setForm({
-            display_name: fresh.display_name || '',
-            phone: fresh.phone || '',
-            address: fresh.address || '',
-          });
+        if (cancelled) return;
+        setProfile(fresh);
+        setForm({
+          display_name: fresh.display_name || '',
+          phone: fresh.phone || '',
+          address: fresh.address || '',
+        });
+        // Kick off the books fetch independently — empty list is a valid state.
+        try {
+          const list = await listBooksByOwner(fresh.id);
+          if (!cancelled) setBooks(list);
+        } catch {
+          if (!cancelled) setBooks([]);
+        } finally {
+          if (!cancelled) setBooksLoading(false);
         }
       } catch (err) {
         if (!cancelled) {
           setError(err?.response?.data?.error?.message || 'Could not load your profile.');
+          setBooksLoading(false);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -199,13 +214,47 @@ function MyProfilePage() {
         </form>
       </section>
 
-      {/* ── Empty-state cards ── */}
-      <section className="mt-10 grid gap-5 md:grid-cols-2">
-        <EmptyCard
-          icon={<BookOpen className="h-5 w-5 text-bordeaux" aria-hidden="true" />}
-          title="Books you've listed"
-          copy="Books you add to BookShare will appear here, ready to be reserved by other readers."
-        />
+      {/* ── Books you've listed ── */}
+      <section className="mt-10">
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-2xl text-sepiaDark">Books you've listed</h2>
+          {books.length > 0 && (
+            <Link to="/books/new" className="btn-ghost no-underline">
+              <PlusCircle className="h-4 w-4" aria-hidden="true" />
+              Add another
+            </Link>
+          )}
+        </div>
+
+        {booksLoading ? (
+          <p className="mt-4 text-sepiaSoft">Loading your books…</p>
+        ) : books.length > 0 ? (
+          <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {books.map((b) => (
+              <BookCard key={b.id} book={b} showStatus />
+            ))}
+          </div>
+        ) : (
+          <div className="mt-4 rounded-2xl border border-dashed border-paperDark bg-ivory/70 p-6">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-cream">
+                <BookOpen className="h-5 w-5 text-bordeaux" aria-hidden="true" />
+              </span>
+              <h3 className="font-display text-lg text-sepiaDark">No books listed yet</h3>
+            </div>
+            <p className="mt-3 text-sm text-sepiaSoft">
+              Add a book from your shelf and other readers will be able to reserve it.
+            </p>
+            <Link to="/books/new" className="btn-primary mt-4 no-underline">
+              <PlusCircle className="h-4 w-4" aria-hidden="true" />
+              Add your first book
+            </Link>
+          </div>
+        )}
+      </section>
+
+      {/* ── Empty state for upcoming features ── */}
+      <section className="mt-10">
         <EmptyCard
           icon={<BookOpenCheck className="h-5 w-5 text-bordeaux" aria-hidden="true" />}
           title="Your reservations"

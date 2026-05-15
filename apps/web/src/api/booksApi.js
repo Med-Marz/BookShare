@@ -19,6 +19,18 @@ export async function editBook(bookId, patch) {
   return res.data.book;
 }
 
+// PUT /api/v1/books/:id/cover (multipart). Owner-only. The response carries
+// the updated book with a fresh cover_object_key, so the caller can render the
+// new image immediately.
+export async function replaceCover(bookId, file) {
+  const fd = new FormData();
+  fd.append('cover', file);
+  const res = await axios.put(`/api/v1/books/${bookId}/cover`, fd, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return res.data.book;
+}
+
 // POST /api/v1/books (multipart). `cover` is a File from the browser.
 // Returns the created book document on success.
 export async function addBook({ title, author, year_published, cover }) {

@@ -4,7 +4,7 @@ const grpc = require('@grpc/grpc-js');
 
 const bookClient = require('../clients/bookClient');
 const { makeMetadata } = require('../clients/grpcMetadata');
-const { addBookBodySchema } = require('../schemas/bookSchemas');
+const { addBookBodySchema, editBookBodySchema } = require('../schemas/bookSchemas');
 
 const router = express.Router();
 
@@ -72,6 +72,30 @@ router.post('/', (req, res, next) => {
       })
       .catch(next);
   });
+});
+
+// PUT /api/v1/books/:id — authenticated update of textual fields.
+// express.json() applied per-route so this route's body parsing is explicit
+// and independent of the multer-driven POST / route above.
+router.put('/:id', express.json(), async (req, res, next) => {
+  const parsed = editBookBodySchema.safeParse(req.body || {});
+  if (!parsed.success) {
+    const first = parsed.error.issues[0];
+    const pathKey = first.path?.join('.') || 'body';
+    return next(rest400(`${pathKey}: ${first.message}`));
+  }
+  try {
+    const { book } = await bookClient.editBook(
+      { book_id: req.params.id, ...parsed.data },
+      makeMetadata(req.userId),
+    );
+    if (req.log) {
+      req.log.info({ event: 'book.edit', book_id: book.id }, 'book updated');
+    }
+    res.json({ book });
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = router;

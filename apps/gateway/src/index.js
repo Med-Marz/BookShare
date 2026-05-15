@@ -69,6 +69,11 @@ async function start() {
   // can render covers in book grids.
   app.use('/api/v1/covers', require('./routes/covers'));
 
+  // Public book detail (GET /api/v1/books/:id). Other /books verbs (POST, PUT)
+  // are authenticated and mounted further down on the same prefix — Express
+  // tries routers in registration order, so the public GET hits first.
+  app.use('/api/v1/books', require('./routes/booksPublic'));
+
   // ---- JWT gate: every /api/v1/* route mounted AFTER this line is protected.
   // The discovery banner + /api/v1/auth/* + /api/v1/users/* land above this
   // line and stay public.

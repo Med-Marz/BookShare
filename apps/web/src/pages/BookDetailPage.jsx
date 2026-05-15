@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -8,12 +8,13 @@ import {
   MapPin,
   Pencil,
   Phone,
+  Trash2,
   UploadCloud,
   UserRound,
   X,
 } from 'lucide-react';
 import { coverUrl } from '../api/covers';
-import { editBook, getBook, replaceCover } from '../api/booksApi';
+import { deleteBook, editBook, getBook, replaceCover } from '../api/booksApi';
 import useAuth from '../auth/useAuth';
 
 const ALLOWED_COVER_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -27,6 +28,7 @@ const STATUS_STYLES = {
 function BookDetailPage() {
   const { id } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const { token, currentUser } = useAuth();
   const isAuthenticated = Boolean(token);
 
@@ -44,6 +46,34 @@ function BookDetailPage() {
   const fileInputRef = useRef(null);
   const [replacing, setReplacing] = useState(false);
   const [replaceError, setReplaceError] = useState(null);
+
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
+
+  async function handleDelete() {
+    if (!book) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteBook(book.id);
+      navigate('/profile', { replace: true });
+    } catch (err) {
+      const status = err?.response?.status;
+      const code = err?.response?.data?.error?.code;
+      let message;
+      if (status === 409 && code === 'FAILED_PRECONDITION') {
+        message =
+          "This book is currently reserved or lent out — it can't be deleted until the loan is closed.";
+      } else {
+        message = err?.response?.data?.error?.message || 'Could not delete this book.';
+      }
+      setDeleteError(message);
+      setConfirmingDelete(false);
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   async function handleCoverChange(e) {
     const file = e.target.files?.[0];
@@ -341,6 +371,70 @@ function BookDetailPage() {
                 </button>
               </div>
             </form>
+          )}
+
+          {/* Delete book — owner only, two-step inline confirmation */}
+          {isOwner && !editing && (
+            <div className="mt-6">
+              {!confirmingDelete ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConfirmingDelete(true);
+                    setDeleteError(null);
+                  }}
+                  className="inline-flex items-center gap-1.5 text-sm text-bordeaux hover:text-bordeauxDeep"
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                  Delete book
+                </button>
+              ) : (
+                <div className="card-surface space-y-4 border-bordeaux/30 p-5">
+                  <div className="flex items-start gap-3">
+                    <Trash2 className="mt-0.5 h-5 w-5 text-bordeaux" aria-hidden="true" />
+                    <div>
+                      <h3 className="font-display text-lg text-sepiaDark">
+                        Permanently delete this book?
+                      </h3>
+                      <p className="mt-1 text-sm text-sepiaSoft">
+                        The book and its cover image will be removed. This can&apos;t be
+                        undone.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleDelete}
+                      disabled={deleting}
+                      className="btn-primary"
+                    >
+                      {deleting ? 'Deleting…' : 'Confirm delete'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setConfirmingDelete(false);
+                        setDeleteError(null);
+                      }}
+                      className="inline-flex items-center gap-1.5 text-sm text-sepiaSoft hover:text-bordeaux"
+                    >
+                      <X className="h-4 w-4" aria-hidden="true" />
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {deleteError && (
+                <p
+                  role="alert"
+                  className="mt-3 rounded-md border border-bordeaux/30 bg-bordeaux/10 px-3 py-2 text-sm text-bordeaux"
+                >
+                  {deleteError}
+                </p>
+              )}
+            </div>
           )}
 
           {/* Owner card */}

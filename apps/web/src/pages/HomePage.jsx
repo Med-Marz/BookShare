@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   ArrowRight,
   BookmarkPlus,
   BookOpenCheck,
   Handshake,
   Library,
-  Search,
   Sparkles,
 } from 'lucide-react';
 import BookStack from '../components/BookStack.jsx';
@@ -17,9 +16,7 @@ import useAuth from '../auth/useAuth';
 function HomePage() {
   const { token, currentUser } = useAuth();
   const isAuthenticated = Boolean(token);
-  const navigate = useNavigate();
 
-  const [query, setQuery] = useState('');
   const [recent, setRecent] = useState([]);
   const [recentLoading, setRecentLoading] = useState(true);
 
@@ -39,13 +36,6 @@ function HomePage() {
       cancelled = true;
     };
   }, []);
-
-  function handleSearchSubmit(e) {
-    e.preventDefault();
-    const trimmed = query.trim();
-    if (!trimmed) return;
-    navigate(`/search?q=${encodeURIComponent(trimmed)}`);
-  }
 
   return (
     <main className="animate-fade-up">
@@ -86,28 +76,6 @@ function HomePage() {
                 </Link>
               )}
             </div>
-
-            <form
-              onSubmit={handleSearchSubmit}
-              className="mt-8 flex max-w-xl items-stretch gap-2"
-              role="search"
-            >
-              <label className="sr-only" htmlFor="home-search">
-                Search the catalog
-              </label>
-              <input
-                id="home-search"
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search by title, author, or owner"
-                className="input-field flex-1"
-              />
-              <button type="submit" className="btn-ghost shrink-0">
-                <Search className="h-4 w-4" aria-hidden="true" />
-                Search
-              </button>
-            </form>
 
             {isAuthenticated && currentUser?.display_name && (
               <p className="mt-8 text-sm text-sepiaSoft">

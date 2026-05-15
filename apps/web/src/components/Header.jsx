@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useApolloClient } from '@apollo/client/react';
-import { BookOpen, LogOut, PlusCircle, UserRound } from 'lucide-react';
+import { BookOpen, LogOut, PlusCircle, Search, UserRound } from 'lucide-react';
 import useAuth from '../auth/useAuth';
 
 function navLinkClasses({ isActive }) {
@@ -29,11 +30,19 @@ function Header() {
   const navigate = useNavigate();
   const apollo = useApolloClient();
   const isAuthenticated = Boolean(token);
+  const [query, setQuery] = useState('');
 
   async function handleLogout() {
     logout();
     await apollo.clearStore().catch(() => {});
     navigate('/');
+  }
+
+  function handleSearchSubmit(e) {
+    e.preventDefault();
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    navigate(`/search?q=${encodeURIComponent(trimmed)}`);
   }
 
   return (
@@ -50,7 +59,32 @@ function Header() {
           <span className="font-display text-2xl tracking-tight text-sepiaDark">BookShare</span>
         </Link>
 
-        <nav className="flex items-center gap-7">
+        <form
+          role="search"
+          onSubmit={handleSearchSubmit}
+          className="hidden max-w-md flex-1 items-center gap-2 md:flex"
+        >
+          <label className="sr-only" htmlFor="navbar-search">
+            Search the catalog
+          </label>
+          <input
+            id="navbar-search"
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search books, authors, owners…"
+            className="input-field !py-2 flex-1"
+          />
+          <button
+            type="submit"
+            aria-label="Search"
+            className="btn-ghost shrink-0 !px-3 !py-2"
+          >
+            <Search className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </form>
+
+        <nav className="flex items-center gap-6">
           <NavLink to="/" end className={navLinkClasses}>
             {({ isActive }) => <NavLinkLabel isActive={isActive}>Home</NavLinkLabel>}
           </NavLink>

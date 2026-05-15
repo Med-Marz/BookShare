@@ -49,4 +49,25 @@ type Mutation {
   signup(input: SignupInput!): AuthPayload!
   login(email: String!, password: String!): AuthPayload!
   updateProfile(input: UpdateProfileInput!): User!
+  addBook(input: AddBookInput!): Book!
+}
+
+type Book {
+  id: ID!
+  owner_id: ID!
+  title: String!
+  author: String!
+  year_published: Int!
+  cover_object_key: String!
+  status: String!
+  created_at: String!
+  updated_at: String!
+}
+
+input AddBookInput {
+  title: String!
+  author: String!
+  year_published: Int!
+  cover_base64: String!         # base64-encoded image bytes
+  cover_content_type: String!   # image/jpeg | image/png | image/webp
 }

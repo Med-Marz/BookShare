@@ -33,7 +33,7 @@ function Header() {
               }`
             }
           >
-            Browse
+            Books
           </NavLink>
 
           {isAuthenticated ? (

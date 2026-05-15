@@ -5,12 +5,36 @@
     "description": "BookShare REST + GraphQL test collection. Grows story by story. Run with `npx newman run postman/BookShare.postman_collection.json` for CI-style verification."
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:4000", "type": "string" },
-    { "key": "token", "value": "", "type": "string" },
-    { "key": "userId", "value": "", "type": "string" },
-    { "key": "testEmail", "value": "", "type": "string" },
-    { "key": "testPassword", "value": "correctbattery", "type": "string" },
-    { "key": "gqlEmail", "value": "", "type": "string" }
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "testEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "testPassword",
+      "value": "correctbattery",
+      "type": "string"
+    },
+    {
+      "key": "gqlEmail",
+      "value": "",
+      "type": "string"
+    }
   ],
   "item": [
     {
@@ -18,14 +42,26 @@
       "description": "Signup + login. Each request runs in order; the signup happy-path saves the test email/password so later requests can reuse them.",
       "item": [
         {
-          "name": "POST /auth/signup — happy path",
+          "name": "POST /auth/signup \u2014 happy path",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/signup",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "signup"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "signup"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -53,14 +89,26 @@
           ]
         },
         {
-          "name": "POST /auth/signup — duplicate email (409)",
+          "name": "POST /auth/signup \u2014 duplicate email (409)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/signup",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "signup"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "signup"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -82,14 +130,26 @@
           ]
         },
         {
-          "name": "POST /auth/signup — short password (400)",
+          "name": "POST /auth/signup \u2014 short password (400)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/signup",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "signup"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "signup"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -112,14 +172,26 @@
           ]
         },
         {
-          "name": "POST /auth/login — happy path",
+          "name": "POST /auth/login \u2014 happy path",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -144,14 +216,26 @@
           ]
         },
         {
-          "name": "POST /auth/login — wrong password (401)",
+          "name": "POST /auth/login \u2014 wrong password (401)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -174,14 +258,26 @@
           ]
         },
         {
-          "name": "POST /auth/login — unknown email (401)",
+          "name": "POST /auth/login \u2014 unknown email (401)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -209,14 +305,25 @@
       "description": "Authenticated profile read + update via /api/v1/profile. Depends on the Auth folder running first so {{token}} is set.",
       "item": [
         {
-          "name": "GET /profile — happy path (200)",
+          "name": "GET /profile \u2014 happy path (200)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/v1/profile",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "profile"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "profile"
+              ]
             }
           },
           "event": [
@@ -238,13 +345,19 @@
           ]
         },
         {
-          "name": "GET /profile — no token (401)",
+          "name": "GET /profile \u2014 no token (401)",
           "request": {
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/v1/profile",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "profile"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "profile"
+              ]
             }
           },
           "event": [
@@ -262,17 +375,29 @@
           ]
         },
         {
-          "name": "PUT /profile — update display_name (200)",
+          "name": "PUT /profile \u2014 update display_name (200)",
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/v1/profile",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "profile"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "profile"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -294,17 +419,29 @@
           ]
         },
         {
-          "name": "PUT /profile — with email key (400)",
+          "name": "PUT /profile \u2014 with email key (400)",
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/v1/profile",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "profile"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "profile"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -333,13 +470,20 @@
       "description": "Public user profile reads at /api/v1/users/:id. Contact fields are returned only when the caller presents a valid JWT.",
       "item": [
         {
-          "name": "GET /users/:id — anonymous (200, no contact fields)",
+          "name": "GET /users/:id \u2014 anonymous (200, no contact fields)",
           "request": {
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/v1/users/{{userId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "users", "{{userId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "{{userId}}"
+              ]
             }
           },
           "event": [
@@ -361,14 +505,26 @@
           ]
         },
         {
-          "name": "GET /users/:id — authenticated (200, full profile)",
+          "name": "GET /users/:id \u2014 authenticated (200, full profile)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/v1/users/{{userId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "users", "{{userId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "{{userId}}"
+              ]
             }
           },
           "event": [
@@ -389,13 +545,20 @@
           ]
         },
         {
-          "name": "GET /users/:id — unknown id (404)",
+          "name": "GET /users/:id \u2014 unknown id (404)",
           "request": {
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/v1/users/00000000-0000-0000-0000-000000000000",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "users", "00000000-0000-0000-0000-000000000000"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "00000000-0000-0000-0000-000000000000"
+              ]
             }
           },
           "event": [
@@ -415,17 +578,368 @@
       ]
     },
     {
+      "name": "Books \u2014 Add",
+      "description": "POST /api/v1/books (multipart) and GraphQL addBook. Depends on token captured by the Auth folder's signup test.",
+      "item": [
+        {
+          "name": "POST /api/v1/books \u2014 happy path (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "The Hobbit",
+                  "type": "text"
+                },
+                {
+                  "key": "author",
+                  "value": "J. R. R. Tolkien",
+                  "type": "text"
+                },
+                {
+                  "key": "year_published",
+                  "value": "1937",
+                  "type": "text"
+                },
+                {
+                  "key": "cover",
+                  "type": "file",
+                  "src": "fixtures/cover.jpg"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "books"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('returns book.id', () => pm.expect(body.book.id).to.be.a('string'));",
+                  "pm.test('returns book.title', () => pm.expect(body.book.title).to.eql('The Hobbit'));",
+                  "pm.test('returns book.author', () => pm.expect(body.book.author).to.eql('J. R. R. Tolkien'));",
+                  "pm.test('returns book.year_published', () => pm.expect(body.book.year_published).to.eql(1937));",
+                  "pm.test('returns Available status', () => pm.expect(body.book.status).to.eql('Available'));",
+                  "pm.test('cover_object_key looks right', () => pm.expect(body.book.cover_object_key).to.match(/^covers\\//));",
+                  "pm.test('owner_id matches caller', () => pm.expect(body.book.owner_id).to.eql(pm.collectionVariables.get('userId')));",
+                  "pm.collectionVariables.set('createdBookId', body.book.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/books \u2014 missing cover (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Anything",
+                  "type": "text"
+                },
+                {
+                  "key": "author",
+                  "value": "Anyone",
+                  "type": "text"
+                },
+                {
+                  "key": "year_published",
+                  "value": "2020",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "books"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 400', () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test('error code is VALIDATION_ERROR', () => pm.expect(body.error.code).to.eql('VALIDATION_ERROR'));",
+                  "pm.test('message says cover required', () => pm.expect(body.error.message).to.match(/cover/i));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/books \u2014 missing title (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "author",
+                  "value": "Anyone",
+                  "type": "text"
+                },
+                {
+                  "key": "year_published",
+                  "value": "2020",
+                  "type": "text"
+                },
+                {
+                  "key": "cover",
+                  "type": "file",
+                  "src": "fixtures/cover.jpg"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "books"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 400', () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test('error code is VALIDATION_ERROR', () => pm.expect(body.error.code).to.eql('VALIDATION_ERROR'));",
+                  "pm.test('message mentions title', () => pm.expect(body.error.message).to.match(/title/i));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/books \u2014 no JWT (401)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "X",
+                  "type": "text"
+                },
+                {
+                  "key": "author",
+                  "value": "Y",
+                  "type": "text"
+                },
+                {
+                  "key": "year_published",
+                  "value": "2020",
+                  "type": "text"
+                },
+                {
+                  "key": "cover",
+                  "type": "file",
+                  "src": "fixtures/cover.jpg"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "books"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 401', () => pm.response.to.have.status(401));",
+                  "const body = pm.response.json();",
+                  "pm.test('error code is AUTHENTICATION_REQUIRED', () => pm.expect(body.error.code).to.eql('AUTHENTICATION_REQUIRED'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "mutation addBook \u2014 happy path (200)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"mutation Add($input: AddBookInput!) { addBook(input: $input) { id title author year_published cover_object_key status owner_id } }\", \"variables\": {\"input\": {\"title\": \"Dune\", \"author\": \"Frank Herbert\", \"year_published\": 1965, \"cover_base64\": \"__COVER_B64__\", \"cover_content_type\": \"image/jpeg\"}}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Postman doesn't read files from disk in pre-request, so use a baked-in tiny base64 jpeg.",
+                  "// 358-byte solid-color JPEG (matches postman/fixtures/cover.jpg).",
+                  "const tinyJpegBase64 = '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCABgAEADASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAr/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AKpAAAAAAAA//9k=';",
+                  "const body = JSON.parse(pm.request.body.raw);",
+                  "body.variables.input.cover_base64 = tinyJpegBase64;",
+                  "pm.request.body.update(JSON.stringify(body));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('no errors', () => pm.expect(body.errors).to.be.undefined);",
+                  "pm.test('returns addBook.id', () => pm.expect(body.data.addBook.id).to.be.a('string'));",
+                  "pm.test('returns Dune title', () => pm.expect(body.data.addBook.title).to.eql('Dune'));",
+                  "pm.test('returns Available status', () => pm.expect(body.data.addBook.status).to.eql('Available'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "mutation addBook \u2014 missing cover_base64 (errors)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"mutation Add($input: AddBookInput!) { addBook(input: $input) { id } }\", \"variables\": {\"input\": {\"title\": \"Test\", \"author\": \"Test\", \"year_published\": 2020, \"cover_base64\": \"\", \"cover_content_type\": \"image/jpeg\"}}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 400 (Apollo respects http.status)', () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test('GraphQL errors present', () => pm.expect(body.errors).to.be.an('array').and.not.empty);",
+                  "pm.test('extensions.code is VALIDATION_ERROR', () => pm.expect(body.errors[0].extensions.code).to.eql('VALIDATION_ERROR'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "JWT middleware",
       "description": "Smoke-tests that the gateway gates protected /api/v1/* paths after enabling JWT verification in story 1.3.",
       "item": [
         {
-          "name": "GET /api/v1 — public discovery banner (200)",
+          "name": "GET /api/v1 \u2014 public discovery banner (200)",
           "request": {
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/v1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1"
+              ]
             }
           },
           "event": [
@@ -443,13 +957,19 @@
           ]
         },
         {
-          "name": "GET /api/v1/foobar — protected, no token (401)",
+          "name": "GET /api/v1/foobar \u2014 protected, no token (401)",
           "request": {
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/v1/foobar",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "foobar"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "foobar"
+              ]
             }
           },
           "event": [
@@ -467,14 +987,25 @@
           ]
         },
         {
-          "name": "GET /api/v1/foobar — protected, bad token (401)",
+          "name": "GET /api/v1/foobar \u2014 protected, bad token (401)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer not-a-valid-jwt" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer not-a-valid-jwt"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/v1/foobar",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "foobar"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "foobar"
+              ]
             }
           },
           "event": [
@@ -492,14 +1023,25 @@
           ]
         },
         {
-          "name": "GET /api/v1/foobar — protected, valid token (404)",
+          "name": "GET /api/v1/foobar \u2014 protected, valid token (404)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/v1/foobar",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "foobar"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "foobar"
+              ]
             }
           },
           "event": [
@@ -508,7 +1050,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('status is 404 — auth passed, route just does not exist yet', () => pm.response.to.have.status(404));"
+                  "pm.test('status is 404 \u2014 auth passed, route just does not exist yet', () => pm.response.to.have.status(404));"
                 ]
               }
             }
@@ -521,14 +1063,23 @@
       "description": "Signup and login via the /graphql endpoint.",
       "item": [
         {
-          "name": "mutation signup — happy path",
+          "name": "mutation signup \u2014 happy path",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/graphql",
-              "host": ["{{baseUrl}}"],
-              "path": ["graphql"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -553,14 +1104,23 @@
           ]
         },
         {
-          "name": "mutation login — happy path",
+          "name": "mutation login \u2014 happy path",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/graphql",
-              "host": ["{{baseUrl}}"],
-              "path": ["graphql"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -584,17 +1144,27 @@
           ]
         },
         {
-          "name": "query profile — happy path (200)",
+          "name": "query profile \u2014 happy path (200)",
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/graphql",
-              "host": ["{{baseUrl}}"],
-              "path": ["graphql"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -617,14 +1187,23 @@
           ]
         },
         {
-          "name": "query profile — no token (401)",
+          "name": "query profile \u2014 no token (401)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/graphql",
-              "host": ["{{baseUrl}}"],
-              "path": ["graphql"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -646,17 +1225,27 @@
           ]
         },
         {
-          "name": "mutation updateProfile — happy path (200)",
+          "name": "mutation updateProfile \u2014 happy path (200)",
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/graphql",
-              "host": ["{{baseUrl}}"],
-              "path": ["graphql"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -679,14 +1268,23 @@
           ]
         },
         {
-          "name": "query user — anonymous (null contact fields)",
+          "name": "query user \u2014 anonymous (null contact fields)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/graphql",
-              "host": ["{{baseUrl}}"],
-              "path": ["graphql"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -712,17 +1310,27 @@
           ]
         },
         {
-          "name": "query user — authenticated (populated contact fields)",
+          "name": "query user \u2014 authenticated (populated contact fields)",
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/graphql",
-              "host": ["{{baseUrl}}"],
-              "path": ["graphql"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -747,14 +1355,23 @@
           ]
         },
         {
-          "name": "mutation login — wrong password (401)",
+          "name": "mutation login \u2014 wrong password (401)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/graphql",
-              "host": ["{{baseUrl}}"],
-              "path": ["graphql"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
             },
             "body": {
               "mode": "raw",

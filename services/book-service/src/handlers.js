@@ -118,6 +118,34 @@ function makeHandlers(logger) {
       }
     },
 
+    async ListBooksByOwner(call, callback) {
+      const ownerId = call.request?.owner_id;
+      if (!ownerId) {
+        return callback({
+          code: grpc.status.INVALID_ARGUMENT,
+          message: 'owner_id is required',
+        });
+      }
+      try {
+        const docs = await db.collection
+          .find({ selector: { owner_id: ownerId } })
+          .exec();
+        // RxDB returns RxDocuments — convert to plain JSON before sending over
+        // the wire. ISO 8601 strings sort lexically the same as chronologically,
+        // so a descending JS sort gives "newest first" without needing an index.
+        const books = docs
+          .map((d) => d.toMutableJSON())
+          .sort((a, b) => b.created_at.localeCompare(a.created_at));
+        return callback(null, { books });
+      } catch (err) {
+        logger.error({ err, owner_id: ownerId }, 'ListBooksByOwner failed');
+        return callback({
+          code: grpc.status.INTERNAL,
+          message: 'failed to list books',
+        });
+      }
+    },
+
     async GetCoverBytes(call, callback) {
       const objectKey = call.request?.object_key;
       if (!objectKey) {

@@ -1004,6 +1004,167 @@
       ]
     },
     {
+      "name": "Books \u2014 List",
+      "description": "GET /api/v1/users/:id/books REST + GraphQL user(id) { books }. Depends on Auth folder for {{userId}}/{{token}} and Books \u2014 Add for the previously created book.",
+      "item": [
+        {
+          "name": "GET /api/v1/users/:id/books \u2014 own user (200 with the book added)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/{{userId}}/books",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "{{userId}}",
+                "books"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('books is an array', () => pm.expect(body.books).to.be.an('array'));",
+                  "pm.test('at least one book listed', () => pm.expect(body.books.length).to.be.at.least(1));",
+                  "pm.test('first book has id', () => pm.expect(body.books[0].id).to.be.a('string'));",
+                  "pm.test('first book has title', () => pm.expect(body.books[0].title).to.be.a('string'));",
+                  "pm.test('first book has cover_object_key', () => pm.expect(body.books[0].cover_object_key).to.match(/^covers\\//));",
+                  "pm.test('first book owner_id matches caller', () => pm.expect(body.books[0].owner_id).to.eql(pm.collectionVariables.get('userId')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /auth/signup \u2014 second user (sets up empty-user test)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"bob+{{$timestamp}}@example.com\", \"password\": \"smoke-pass-1234\", \"display_name\": \"Bob\", \"phone\": \"+216 99 000 000\", \"address\": \"Sfax, Tunisia\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "signup"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('signup succeeded', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('secondUserId', body.user.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/users/:id/books \u2014 empty user (200, empty array)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/{{secondUserId}}/books",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "{{secondUserId}}",
+                "books"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('books is an array', () => pm.expect(body.books).to.be.an('array'));",
+                  "pm.test('books array is empty', () => pm.expect(body.books.length).to.eql(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "query user(id) { books } \u2014 cross-service join (200)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query U($id:ID!){user(id:$id){id display_name books{id title author year_published cover_object_key status}}}\", \"variables\": {\"id\": \"{{userId}}\"}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('no errors', () => pm.expect(body.errors).to.be.undefined);",
+                  "pm.test('display_name returned', () => pm.expect(body.data.user.display_name).to.be.a('string'));",
+                  "pm.test('books is an array', () => pm.expect(body.data.user.books).to.be.an('array'));",
+                  "pm.test('at least one book joined', () => pm.expect(body.data.user.books.length).to.be.at.least(1));",
+                  "pm.test('first joined book has cover_object_key', () => pm.expect(body.data.user.books[0].cover_object_key).to.match(/^covers\\//));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "JWT middleware",
       "description": "Smoke-tests that the gateway gates protected /api/v1/* paths after enabling JWT verification in story 1.3.",
       "item": [

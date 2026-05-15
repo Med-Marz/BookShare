@@ -10,6 +10,7 @@ package book;
 
 service BookService {
   rpc AddBook (AddBookRequest) returns (AddBookResponse);
+  rpc GetCoverBytes (GetCoverBytesRequest) returns (GetCoverBytesResponse);
 }
 
 message Book {
@@ -35,4 +36,13 @@ message AddBookRequest {
 
 message AddBookResponse {
   Book book = 1;
+}
+
+message GetCoverBytesRequest {
+  string object_key = 1;
+}
+
+message GetCoverBytesResponse {
+  bytes  content = 1;
+  string content_type = 2;
 }

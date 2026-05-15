@@ -44,8 +44,10 @@ async function start() {
     }),
   );
 
-  // 3. JSON body parser. 12 MB headroom; cover uploads use multer per-route in story 2.1.
-  app.use(express.json({ limit: '12mb' }));
+  // 3. JSON body parser. 16 MB headroom — enough for base64-encoded 10 MB
+  // covers via the GraphQL addBook path. REST cover uploads bypass this and
+  // go through multer per-route.
+  app.use(express.json({ limit: '16mb' }));
 
   // 4. pino HTTP request logging.
   app.use(pinoHttp({ logger }));
@@ -69,6 +71,7 @@ async function start() {
 
   // ---- PROTECTED routes (require valid JWT). Mounted after requireAuth.
   app.use('/api/v1/profile', require('./routes/profile'));
+  app.use('/api/v1/books', require('./routes/books'));
 
   // ---- GraphQL — Apollo Server must start before mounting middleware.
   // The context extracts the JWT's sub claim (or null) so resolvers can gate

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -8,12 +8,15 @@ import {
   MapPin,
   Pencil,
   Phone,
+  UploadCloud,
   UserRound,
   X,
 } from 'lucide-react';
 import { coverUrl } from '../api/covers';
-import { editBook, getBook } from '../api/booksApi';
+import { editBook, getBook, replaceCover } from '../api/booksApi';
 import useAuth from '../auth/useAuth';
+
+const ALLOWED_COVER_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 const STATUS_STYLES = {
   Available: 'border-forest/30 bg-forest/10 text-forest',
@@ -37,6 +40,34 @@ function BookDetailPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const [saved, setSaved] = useState(false);
+
+  const fileInputRef = useRef(null);
+  const [replacing, setReplacing] = useState(false);
+  const [replaceError, setReplaceError] = useState(null);
+
+  async function handleCoverChange(e) {
+    const file = e.target.files?.[0];
+    // Reset so the same filename can be re-selected later if needed.
+    e.target.value = '';
+    if (!file) return;
+    if (!ALLOWED_COVER_TYPES.has(file.type)) {
+      setReplaceError('Cover must be a JPEG, PNG, or WEBP image.');
+      return;
+    }
+    setReplacing(true);
+    setReplaceError(null);
+    try {
+      const updated = await replaceCover(book.id, file);
+      setBook(updated);
+      setSaved(true);
+    } catch (err) {
+      const message =
+        err?.response?.data?.error?.message || 'Could not replace the cover.';
+      setReplaceError(message);
+    } finally {
+      setReplacing(false);
+    }
+  }
 
   // Fetch the book and the owner's public profile. We use REST instead of
   // GraphQL on purpose — REST returns the book in a single round-trip, and
@@ -205,6 +236,34 @@ function BookDetailPage() {
               className="h-full w-full object-cover"
             />
           </div>
+          {isOwner && (
+            <div className="mt-3 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={replacing}
+                className="btn-ghost w-full !py-2 !text-sm"
+              >
+                <UploadCloud className="h-4 w-4" aria-hidden="true" />
+                {replacing ? 'Replacing…' : 'Replace cover'}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleCoverChange}
+                className="sr-only"
+              />
+              {replaceError && (
+                <p
+                  role="alert"
+                  className="rounded-md border border-bordeaux/30 bg-bordeaux/10 px-3 py-2 text-xs text-bordeaux"
+                >
+                  {replaceError}
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Details */}

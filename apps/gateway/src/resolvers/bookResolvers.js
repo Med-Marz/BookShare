@@ -25,6 +25,8 @@ function grpcErrorToGraphQL(err) {
       return gqlError('FORBIDDEN', message, 403);
     case grpc.status.NOT_FOUND:
       return gqlError('NOT_FOUND', message, 404);
+    case grpc.status.FAILED_PRECONDITION:
+      return gqlError('FAILED_PRECONDITION', message, 409);
     case grpc.status.UNAUTHENTICATED:
       return gqlError('AUTHENTICATION_REQUIRED', message, 401);
     default:
@@ -97,6 +99,16 @@ module.exports = {
   },
 
   Mutation: {
+    deleteBook: async (_parent, { id }, ctx) => {
+      if (!ctx?.userId) throw unauthenticated();
+      try {
+        await bookClient.deleteBook({ book_id: id }, makeMetadata(ctx.userId));
+        return true;
+      } catch (err) {
+        throw grpcErrorToGraphQL(err);
+      }
+    },
+
     editBook: async (_parent, { id, input }, ctx) => {
       if (!ctx?.userId) throw unauthenticated();
       try {

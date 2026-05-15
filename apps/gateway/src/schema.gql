@@ -54,6 +54,7 @@ type Mutation {
   updateProfile(input: UpdateProfileInput!): User!
   addBook(input: AddBookInput!): Book!
   editBook(id: ID!, input: EditBookInput!): Book!
+  deleteBook(id: ID!): Boolean!
 }
 
 extend type Query {

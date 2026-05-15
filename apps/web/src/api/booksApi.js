@@ -7,6 +7,12 @@ export async function listBooksByOwner(ownerId) {
   return res.data.books || [];
 }
 
+// GET /api/v1/home/recent-books — public, returns books enriched with owner.display_name.
+export async function listRecentBooks(limit = 12) {
+  const res = await axios.get('/api/v1/home/recent-books', { params: { limit } });
+  return res.data.books || [];
+}
+
 // GET /api/v1/books/:id — public book detail.
 export async function getBook(bookId) {
   const res = await axios.get(`/api/v1/books/${bookId}`);

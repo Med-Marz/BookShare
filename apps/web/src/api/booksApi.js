@@ -19,6 +19,12 @@ export async function editBook(bookId, patch) {
   return res.data.book;
 }
 
+// DELETE /api/v1/books/:id — owner-only, fails when status is Reserved/Lent Out.
+// Returns nothing on success; throws an axios error on any failure path.
+export async function deleteBook(bookId) {
+  await axios.delete(`/api/v1/books/${bookId}`);
+}
+
 // PUT /api/v1/books/:id/cover (multipart). Owner-only. The response carries
 // the updated book with a fresh cover_object_key, so the caller can render the
 // new image immediately.

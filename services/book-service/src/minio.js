@@ -49,6 +49,10 @@ async function getCoverBuffer(objectKey) {
   return Buffer.concat(chunks);
 }
 
+async function removeCover(objectKey) {
+  await client.removeObject(BUCKET, objectKey);
+}
+
 function extFromContentType(ct) {
   if (ct === 'image/jpeg') return 'jpg';
   if (ct === 'image/png') return 'png';
@@ -56,4 +60,12 @@ function extFromContentType(ct) {
   return 'bin';
 }
 
-module.exports = { init, putCover, statCover, getCoverBuffer, extFromContentType, BUCKET };
+module.exports = {
+  init,
+  putCover,
+  statCover,
+  getCoverBuffer,
+  removeCover,
+  extFromContentType,
+  BUCKET,
+};

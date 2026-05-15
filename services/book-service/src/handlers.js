@@ -138,6 +138,96 @@ function makeHandlers(logger) {
       }
     },
 
+    async ReplaceCover(call, callback) {
+      const bookId = call.request?.book_id;
+      const metaUser = call.metadata.get('x-user-id')[0];
+
+      if (!bookId) {
+        return callback({
+          code: grpc.status.INVALID_ARGUMENT,
+          message: 'book_id is required',
+        });
+      }
+      if (!metaUser) {
+        return callback({
+          code: grpc.status.PERMISSION_DENIED,
+          message: 'missing x-user-id metadata',
+        });
+      }
+
+      const cover = call.request.cover_image_bytes;
+      const coverLen =
+        cover && typeof cover.length === 'number' ? cover.length : 0;
+      if (!cover || coverLen === 0) {
+        return callback({
+          code: grpc.status.INVALID_ARGUMENT,
+          message: 'cover image is required',
+        });
+      }
+      const contentType = call.request.cover_content_type;
+      if (!contentType || !ALLOWED_CONTENT_TYPES.has(contentType)) {
+        return callback({
+          code: grpc.status.INVALID_ARGUMENT,
+          message: 'unsupported cover content type',
+        });
+      }
+
+      try {
+        const doc = await db.collection.findOne({ selector: { id: bookId } }).exec();
+        if (!doc) {
+          return callback({ code: grpc.status.NOT_FOUND, message: 'book not found' });
+        }
+        if (doc.owner_id !== metaUser) {
+          return callback({
+            code: grpc.status.PERMISSION_DENIED,
+            message: 'only the book owner can replace this cover',
+          });
+        }
+
+        const oldKey = doc.cover_object_key;
+        const newKey = `covers/${randomUUID()}.${minio.extFromContentType(contentType)}`;
+        await minio.putCover({
+          objectKey: newKey,
+          buffer: Buffer.from(cover),
+          contentType,
+        });
+
+        const now = new Date().toISOString();
+        await doc.patch({ cover_object_key: newKey, updated_at: now });
+
+        // Best-effort delete of the previous object. Failure here does NOT
+        // fail the request — the new cover is already live.
+        if (oldKey && oldKey !== newKey) {
+          minio
+            .removeCover(oldKey)
+            .catch((err) =>
+              logger.warn({ err, object_key: oldKey }, 'old cover delete failed'),
+            );
+        }
+
+        const updated = await db.collection.findOne({ selector: { id: bookId } }).exec();
+        logger.info(
+          {
+            event: 'book.cover.replaced',
+            book_id: bookId,
+            owner_id: metaUser,
+            old_key: oldKey,
+            new_key: newKey,
+            bytes: coverLen,
+            content_type: contentType,
+          },
+          'cover replaced',
+        );
+        return callback(null, { book: updated.toMutableJSON() });
+      } catch (err) {
+        logger.error({ err, book_id: bookId }, 'ReplaceCover failed');
+        return callback({
+          code: grpc.status.INTERNAL,
+          message: 'failed to replace cover',
+        });
+      }
+    },
+
     async EditBook(call, callback) {
       const bookId = call.request?.book_id;
       const metaUser = call.metadata.get('x-user-id')[0];

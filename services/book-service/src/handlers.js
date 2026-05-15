@@ -117,6 +117,38 @@ function makeHandlers(logger) {
         });
       }
     },
+
+    async GetCoverBytes(call, callback) {
+      const objectKey = call.request?.object_key;
+      if (!objectKey) {
+        return callback({
+          code: grpc.status.INVALID_ARGUMENT,
+          message: 'object_key is required',
+        });
+      }
+      try {
+        const { contentType } = await minio.statCover(objectKey);
+        const buffer = await minio.getCoverBuffer(objectKey);
+        return callback(null, { content: buffer, content_type: contentType });
+      } catch (err) {
+        const minioCode = err?.code;
+        if (
+          minioCode === 'NoSuchKey' ||
+          minioCode === 'NotFound' ||
+          minioCode === 'NoSuchBucket'
+        ) {
+          return callback({
+            code: grpc.status.NOT_FOUND,
+            message: 'cover not found',
+          });
+        }
+        logger.error({ err, object_key: objectKey }, 'GetCoverBytes failed');
+        return callback({
+          code: grpc.status.INTERNAL,
+          message: 'failed to fetch cover',
+        });
+      }
+    },
   };
 }
 

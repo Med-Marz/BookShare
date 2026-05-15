@@ -32,6 +32,23 @@ async function putCover({ objectKey, buffer, contentType }) {
   return objectKey;
 }
 
+async function statCover(objectKey) {
+  const stat = await client.statObject(BUCKET, objectKey);
+  // MinIO normalises the header into metaData; the casing varies, so check both.
+  const contentType =
+    stat.metaData?.['content-type'] ||
+    stat.metaData?.['Content-Type'] ||
+    'application/octet-stream';
+  return { contentType, size: stat.size };
+}
+
+async function getCoverBuffer(objectKey) {
+  const stream = await client.getObject(BUCKET, objectKey);
+  const chunks = [];
+  for await (const chunk of stream) chunks.push(chunk);
+  return Buffer.concat(chunks);
+}
+
 function extFromContentType(ct) {
   if (ct === 'image/jpeg') return 'jpg';
   if (ct === 'image/png') return 'png';
@@ -39,4 +56,4 @@ function extFromContentType(ct) {
   return 'bin';
 }
 
-module.exports = { init, putCover, extFromContentType, BUCKET };
+module.exports = { init, putCover, statCover, getCoverBuffer, extFromContentType, BUCKET };

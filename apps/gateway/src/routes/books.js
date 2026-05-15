@@ -74,6 +74,40 @@ router.post('/', (req, res, next) => {
   });
 });
 
+// PUT /api/v1/books/:id/cover — authenticated multipart cover replace.
+// Reuses the same multer `upload` instance as POST / so size + MIME caps stay
+// identical across the two upload endpoints.
+router.put('/:id/cover', (req, res, next) => {
+  upload.single('cover')(req, res, (mErr) => {
+    if (mErr) {
+      if (mErr.code === 'LIMIT_FILE_SIZE') return next(rest400('cover image exceeds 10MB'));
+      if (mErr.code === 'UNSUPPORTED_TYPE') return next(rest400('unsupported cover content type'));
+      return next(rest400('invalid multipart upload'));
+    }
+    if (!req.file) return next(rest400('cover image is required'));
+
+    bookClient
+      .replaceCover(
+        {
+          book_id: req.params.id,
+          cover_image_bytes: req.file.buffer,
+          cover_content_type: req.file.mimetype,
+        },
+        makeMetadata(req.userId),
+      )
+      .then(({ book }) => {
+        if (req.log) {
+          req.log.info(
+            { event: 'book.cover.replace', book_id: book.id },
+            'cover replaced',
+          );
+        }
+        res.status(200).json({ book });
+      })
+      .catch(next);
+  });
+});
+
 // PUT /api/v1/books/:id — authenticated update of textual fields.
 // express.json() applied per-route so this route's body parsing is explicit
 // and independent of the multer-driven POST / route above.

@@ -1165,6 +1165,428 @@
       ]
     },
     {
+      "name": "Books \u2014 Edit",
+      "description": "PUT /api/v1/books/:id (owner-only) + public GET /api/v1/books/:id + GraphQL book(id) cross-service join + editBook mutation.",
+      "item": [
+        {
+          "name": "PUT /api/v1/books/:id \u2014 own book happy path (200)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\": \"Edited title\", \"year_published\": 1999}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books/{{createdBookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "books",
+                "{{createdBookId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('title updated', () => pm.expect(body.book.title).to.eql('Edited title'));",
+                  "pm.test('year_published updated', () => pm.expect(body.book.year_published).to.eql(1999));",
+                  "pm.test('updated_at is later than created_at', () => pm.expect(body.book.updated_at >= body.book.created_at).to.be.true);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/books/:id \u2014 anonymous (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books/{{createdBookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "books",
+                "{{createdBookId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('book has id', () => pm.expect(body.book.id).to.be.a('string'));",
+                  "pm.test('book has title', () => pm.expect(body.book.title).to.eql('Edited title'));",
+                  "pm.test('book has cover_object_key', () => pm.expect(body.book.cover_object_key).to.match(/^covers\\//));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/books/:id \u2014 unknown id (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books/00000000-0000-0000-0000-000000000000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "books",
+                "00000000-0000-0000-0000-000000000000"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 404', () => pm.response.to.have.status(404));",
+                  "const body = pm.response.json();",
+                  "pm.test('error code is NOT_FOUND', () => pm.expect(body.error.code).to.eql('NOT_FOUND'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /auth/signup \u2014 third user (sets up non-owner test)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"mallory+{{$timestamp}}@example.com\", \"password\": \"smoke-pass-1234\", \"display_name\": \"Mallory\", \"phone\": \"+216 30 000 000\", \"address\": \"Sousse, Tunisia\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "signup"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('signup succeeded', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('thirdToken', body.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT /api/v1/books/:id \u2014 non-owner (403)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{thirdToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\": \"Hijack attempt\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books/{{createdBookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "books",
+                "{{createdBookId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 403', () => pm.response.to.have.status(403));",
+                  "const body = pm.response.json();",
+                  "pm.test('error code is FORBIDDEN', () => pm.expect(body.error.code).to.eql('FORBIDDEN'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT /api/v1/books/:id \u2014 empty patch (400)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books/{{createdBookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "books",
+                "{{createdBookId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 400', () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test('error code is VALIDATION_ERROR', () => pm.expect(body.error.code).to.eql('VALIDATION_ERROR'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT /api/v1/books/:id \u2014 unknown id (404)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\": \"Phantom\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books/00000000-0000-0000-0000-000000000000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "books",
+                "00000000-0000-0000-0000-000000000000"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 404', () => pm.response.to.have.status(404));",
+                  "const body = pm.response.json();",
+                  "pm.test('error code is NOT_FOUND', () => pm.expect(body.error.code).to.eql('NOT_FOUND'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "query book(id) { owner } \u2014 anonymous (contact fields null)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query B($id:ID!){book(id:$id){id title owner{id display_name email phone address}}}\", \"variables\": {\"id\": \"{{createdBookId}}\"}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('no errors', () => pm.expect(body.errors).to.be.undefined);",
+                  "pm.test('display_name returned', () => pm.expect(body.data.book.owner.display_name).to.be.a('string'));",
+                  "pm.test('email is null for anonymous', () => pm.expect(body.data.book.owner.email).to.be.null);",
+                  "pm.test('phone is null for anonymous', () => pm.expect(body.data.book.owner.phone).to.be.null);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "query book(id) { owner } \u2014 authenticated (contact fields populated)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query B($id:ID!){book(id:$id){id title owner{id display_name email phone address}}}\", \"variables\": {\"id\": \"{{createdBookId}}\"}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('email returned for authenticated viewer', () => pm.expect(body.data.book.owner.email).to.be.a('string'));",
+                  "pm.test('phone returned for authenticated viewer', () => pm.expect(body.data.book.owner.phone).to.be.a('string'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "mutation editBook(id, input) \u2014 happy path",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"mutation E($id:ID!,$input:EditBookInput!){editBook(id:$id,input:$input){id title year_published}}\", \"variables\": {\"id\": \"{{createdBookId}}\", \"input\": {\"year_published\": 2001}}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('no errors', () => pm.expect(body.errors).to.be.undefined);",
+                  "pm.test('year_published updated', () => pm.expect(body.data.editBook.year_published).to.eql(2001));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "JWT middleware",
       "description": "Smoke-tests that the gateway gates protected /api/v1/* paths after enabling JWT verification in story 1.3.",
       "item": [

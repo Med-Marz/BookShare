@@ -41,4 +41,5 @@ module.exports = {
   client,
   addBook: unary('AddBook'),
   getCoverBytes: unary('GetCoverBytes'),
+  listBooksByOwner: unary('ListBooksByOwner'),
 };

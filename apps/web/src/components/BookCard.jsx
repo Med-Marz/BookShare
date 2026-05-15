@@ -7,7 +7,7 @@ const STATUS_STYLES = {
   'Lent Out': 'border-sepiaSoft/30 bg-sepiaSoft/10 text-sepiaSoft',
 };
 
-function BookCard({ book, showStatus = true }) {
+function BookCard({ book, showStatus = true, owner = null }) {
   const statusClass = STATUS_STYLES[book.status] || STATUS_STYLES.Available;
   return (
     <Link to={`/books/${book.id}`} className="block no-underline">
@@ -27,6 +27,11 @@ function BookCard({ book, showStatus = true }) {
           <p className="text-sm text-sepiaSoft">
             {book.author} · {book.year_published}
           </p>
+          {owner && (
+            <p className="text-xs text-sepiaSoft">
+              Shared by <span className="text-sepia">{owner.display_name}</span>
+            </p>
+          )}
           {showStatus && (
             <span
               className={`mt-2 inline-flex w-fit items-center rounded-full border px-2 py-0.5 text-xs font-medium ${statusClass}`}

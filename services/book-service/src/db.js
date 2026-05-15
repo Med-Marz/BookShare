@@ -46,7 +46,6 @@ async function init(logger) {
   db = await createRxDatabase({
     name: 'bookshare',
     storage: wrappedValidateAjvStorage({ storage: getRxStorageMemory() }),
-    ignoreDuplicate: true,
   });
   await db.addCollections({ books: { schema: bookSchema } });
   books = db.books;

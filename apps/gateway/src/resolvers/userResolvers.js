@@ -58,6 +58,26 @@ module.exports = {
         throw grpcErrorToGraphQL(err);
       }
     },
+
+    user: async (_parent, { id }, ctx) => {
+      try {
+        const { user } = await userClient.getUser({ user_id: id });
+        if (!ctx?.userId) {
+          // Anonymous viewer — strip contact fields per FR10.
+          return {
+            id: user.id,
+            display_name: user.display_name,
+            email: null,
+            phone: null,
+            address: null,
+            created_at: null,
+          };
+        }
+        return user;
+      } catch (err) {
+        throw grpcErrorToGraphQL(err);
+      }
+    },
   },
 
   Mutation: {

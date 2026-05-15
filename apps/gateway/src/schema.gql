@@ -4,7 +4,10 @@
 
 type User {
   id: ID!
-  email: String!
+  # email/phone/address are nullable: the public `user(id)` query nulls them
+  # out for anonymous viewers per the contact-info gating rule (story 1.5).
+  # Authenticated queries (signup, login, profile, user) populate them.
+  email: String
   display_name: String!
   phone: String
   address: String
@@ -36,6 +39,10 @@ type Query {
 
   # The authenticated user's full profile. Requires a valid JWT.
   profile: User!
+
+  # Any user's public profile. Reachable anonymously, but email/phone/address
+  # are nulled out for anonymous callers (FR10 contact-info gating).
+  user(id: ID!): User!
 }
 
 type Mutation {

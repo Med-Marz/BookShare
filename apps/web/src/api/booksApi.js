@@ -7,6 +7,18 @@ export async function listBooksByOwner(ownerId) {
   return res.data.books || [];
 }
 
+// GET /api/v1/books/:id — public book detail.
+export async function getBook(bookId) {
+  const res = await axios.get(`/api/v1/books/${bookId}`);
+  return res.data.book;
+}
+
+// PUT /api/v1/books/:id — owner-only update of title/author/year.
+export async function editBook(bookId, patch) {
+  const res = await axios.put(`/api/v1/books/${bookId}`, patch);
+  return res.data.book;
+}
+
 // POST /api/v1/books (multipart). `cover` is a File from the browser.
 // Returns the created book document on success.
 export async function addBook({ title, author, year_published, cover }) {

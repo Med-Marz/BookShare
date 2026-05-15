@@ -3,7 +3,7 @@ const grpc = require('@grpc/grpc-js');
 
 const db = require('./db');
 const minio = require('./minio');
-const { addBookSchema, ALLOWED_CONTENT_TYPES } = require('./schemas');
+const { addBookSchema, editBookSchema, ALLOWED_CONTENT_TYPES } = require('./schemas');
 
 function zodErrorToGrpc(error) {
   const first = error.issues[0];
@@ -115,6 +115,83 @@ function makeHandlers(logger) {
           code: grpc.status.INTERNAL,
           message: 'failed to add book',
         });
+      }
+    },
+
+    async GetBook(call, callback) {
+      const bookId = call.request?.book_id;
+      if (!bookId) {
+        return callback({
+          code: grpc.status.INVALID_ARGUMENT,
+          message: 'book_id is required',
+        });
+      }
+      try {
+        const doc = await db.collection.findOne({ selector: { id: bookId } }).exec();
+        if (!doc) {
+          return callback({ code: grpc.status.NOT_FOUND, message: 'book not found' });
+        }
+        return callback(null, { book: doc.toMutableJSON() });
+      } catch (err) {
+        logger.error({ err, book_id: bookId }, 'GetBook failed');
+        return callback({ code: grpc.status.INTERNAL, message: 'failed to read book' });
+      }
+    },
+
+    async EditBook(call, callback) {
+      const bookId = call.request?.book_id;
+      const metaUser = call.metadata.get('x-user-id')[0];
+      if (!bookId) {
+        return callback({
+          code: grpc.status.INVALID_ARGUMENT,
+          message: 'book_id is required',
+        });
+      }
+      if (!metaUser) {
+        return callback({
+          code: grpc.status.PERMISSION_DENIED,
+          message: 'missing x-user-id metadata',
+        });
+      }
+
+      // Build a candidate patch — drop proto3 defaults (empty strings / 0 ints).
+      const candidate = {};
+      if (call.request.title) candidate.title = call.request.title;
+      if (call.request.author) candidate.author = call.request.author;
+      if (call.request.year_published) candidate.year_published = call.request.year_published;
+
+      const parsed = editBookSchema.safeParse(candidate);
+      if (!parsed.success) {
+        return callback(zodErrorToGrpc(parsed.error));
+      }
+
+      try {
+        const doc = await db.collection.findOne({ selector: { id: bookId } }).exec();
+        if (!doc) {
+          return callback({ code: grpc.status.NOT_FOUND, message: 'book not found' });
+        }
+        if (doc.owner_id !== metaUser) {
+          return callback({
+            code: grpc.status.PERMISSION_DENIED,
+            message: 'only the book owner can edit this book',
+          });
+        }
+        const now = new Date().toISOString();
+        await doc.patch({ ...parsed.data, updated_at: now });
+        const updated = await db.collection.findOne({ selector: { id: bookId } }).exec();
+        logger.info(
+          {
+            event: 'book.updated',
+            book_id: bookId,
+            owner_id: metaUser,
+            fields: Object.keys(parsed.data),
+          },
+          'book updated',
+        );
+        return callback(null, { book: updated.toMutableJSON() });
+      } catch (err) {
+        logger.error({ err, book_id: bookId }, 'EditBook failed');
+        return callback({ code: grpc.status.INTERNAL, message: 'failed to update book' });
       }
     },
 

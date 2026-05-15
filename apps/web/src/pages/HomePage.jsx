@@ -1,11 +1,51 @@
-import { Link } from 'react-router-dom';
-import { BookmarkPlus, Handshake, Library, Sparkles, ArrowRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  ArrowRight,
+  BookmarkPlus,
+  BookOpenCheck,
+  Handshake,
+  Library,
+  Search,
+  Sparkles,
+} from 'lucide-react';
 import BookStack from '../components/BookStack.jsx';
+import BookCard from '../components/BookCard.jsx';
+import { listRecentBooks } from '../api/booksApi';
 import useAuth from '../auth/useAuth';
 
 function HomePage() {
   const { token, currentUser } = useAuth();
   const isAuthenticated = Boolean(token);
+  const navigate = useNavigate();
+
+  const [query, setQuery] = useState('');
+  const [recent, setRecent] = useState([]);
+  const [recentLoading, setRecentLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const list = await listRecentBooks(12);
+        if (!cancelled) setRecent(list);
+      } catch {
+        if (!cancelled) setRecent([]);
+      } finally {
+        if (!cancelled) setRecentLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function handleSearchSubmit(e) {
+    e.preventDefault();
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    navigate(`/search?q=${encodeURIComponent(trimmed)}`);
+  }
 
   return (
     <main className="animate-fade-up">
@@ -47,6 +87,28 @@ function HomePage() {
               )}
             </div>
 
+            <form
+              onSubmit={handleSearchSubmit}
+              className="mt-8 flex max-w-xl items-stretch gap-2"
+              role="search"
+            >
+              <label className="sr-only" htmlFor="home-search">
+                Search the catalog
+              </label>
+              <input
+                id="home-search"
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search by title, author, or owner"
+                className="input-field flex-1"
+              />
+              <button type="submit" className="btn-ghost shrink-0">
+                <Search className="h-4 w-4" aria-hidden="true" />
+                Search
+              </button>
+            </form>
+
             {isAuthenticated && currentUser?.display_name && (
               <p className="mt-8 text-sm text-sepiaSoft">
                 Welcome back,{' '}
@@ -60,6 +122,67 @@ function HomePage() {
             <BookStack className="w-full drop-shadow-[0_18px_28px_rgba(92,70,50,0.18)]" />
           </div>
         </div>
+      </section>
+
+      {/* ─────────── ACTIVITY PANEL (authenticated only) ─────────── */}
+      {isAuthenticated && (
+        <section className="mx-auto max-w-6xl px-6 pt-12">
+          <div className="card-surface flex items-start gap-4 p-6">
+            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-paper text-bordeaux">
+              <BookOpenCheck className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <div>
+              <h2 className="font-display text-xl text-sepiaDark">Your activity</h2>
+              <p className="mt-1 text-sm text-sepiaSoft">
+                Your active reservations and your listed-book counts will live here once
+                reservations come online.
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ─────────── RECENTLY ADDED ─────────── */}
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <span className="text-xs uppercase tracking-[0.2em] text-sepiaSoft">
+              Recently added
+            </span>
+            <h2 className="mt-2 font-display text-3xl text-sepiaDark">Fresh on the shelves</h2>
+          </div>
+          <Link
+            to="/books"
+            className="hidden text-sm text-sepiaSoft no-underline hover:text-bordeaux sm:inline-flex sm:items-center sm:gap-1"
+          >
+            See all
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
+        </div>
+
+        {recentLoading ? (
+          <p className="mt-6 text-sepiaSoft">Loading recent books…</p>
+        ) : recent.length > 0 ? (
+          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {recent.map((b) => (
+              <BookCard key={b.id} book={b} owner={b.owner} showStatus />
+            ))}
+          </div>
+        ) : (
+          <div className="mt-6 rounded-2xl border border-dashed border-paperDark bg-ivory/70 p-8 text-center">
+            <h3 className="font-display text-xl text-sepiaDark">No books yet</h3>
+            <p className="mt-2 text-sm text-sepiaSoft">
+              The shelves are empty for the moment. Be the first to add a book!
+            </p>
+            <Link
+              to={isAuthenticated ? '/books/new' : '/signup'}
+              className="btn-primary mt-5 no-underline"
+            >
+              <BookmarkPlus className="h-4 w-4" aria-hidden="true" />
+              {isAuthenticated ? 'Add your first book' : 'Sign up to add a book'}
+            </Link>
+          </div>
+        )}
       </section>
 
       {/* ─────────── HOW IT WORKS ─────────── */}

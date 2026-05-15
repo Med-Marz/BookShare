@@ -43,6 +43,7 @@ module.exports = {
   getBook: unary('GetBook'),
   editBook: unary('EditBook'),
   replaceCover: unary('ReplaceCover'),
+  deleteBook: unary('DeleteBook'),
   getCoverBytes: unary('GetCoverBytes'),
   listBooksByOwner: unary('ListBooksByOwner'),
 };

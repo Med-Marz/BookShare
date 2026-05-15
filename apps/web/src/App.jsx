@@ -8,6 +8,7 @@ import SignupPage from './pages/SignupPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import MyProfilePage from './pages/MyProfilePage.jsx';
 import UserProfilePage from './pages/UserProfilePage.jsx';
+import AddBookPage from './pages/AddBookPage.jsx';
 
 function Placeholder({ title, copy }) {
   return (
@@ -62,10 +63,9 @@ function App() {
         <Route
           path="/books/new"
           element={
-            <Placeholder
-              title="List a new book"
-              copy="Adding a book — title, author, and a cover image — will live here once the catalog is live."
-            />
+            <RequireAuth>
+              <AddBookPage />
+            </RequireAuth>
           }
         />
         <Route

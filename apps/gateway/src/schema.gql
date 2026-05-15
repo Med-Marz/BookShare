@@ -5,13 +5,16 @@
 type User {
   id: ID!
   # email/phone/address are nullable: the public `user(id)` query nulls them
-  # out for anonymous viewers per the contact-info gating rule (story 1.5).
+  # out for anonymous viewers (contact-info gating).
   # Authenticated queries (signup, login, profile, user) populate them.
   email: String
   display_name: String!
   phone: String
   address: String
   created_at: String
+  # Books listed by this user — resolved by fanning out to book-service.
+  # Returns an empty array if the user has none.
+  books: [Book!]!
 }
 
 type AuthPayload {

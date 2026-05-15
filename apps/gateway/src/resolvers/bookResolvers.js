@@ -32,6 +32,25 @@ function grpcErrorToGraphQL(err) {
 }
 
 module.exports = {
+  User: {
+    // Resolves whenever a GraphQL query selects User.books. Fires one gRPC
+    // call to book-service per user in the result set — Apollo runs sibling
+    // field resolvers in parallel, so a single user(id) query becomes
+    // user-service + book-service in parallel.
+    books: async (parent) => {
+      if (!parent?.id) return [];
+      try {
+        const { books } = await bookClient.listBooksByOwner({
+          owner_id: parent.id,
+        });
+        return books || [];
+      } catch {
+        // Schema requires a non-null array — never break the parent query.
+        return [];
+      }
+    },
+  },
+
   Mutation: {
     addBook: async (_parent, { input }, ctx) => {
       if (!ctx?.userId) throw unauthenticated();

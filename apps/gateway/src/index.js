@@ -64,6 +64,11 @@ async function start() {
   // req.userId on success and leaves it undefined on missing/bad tokens.
   app.use('/api/v1/users', optionalAuth, require('./routes/users'));
 
+  // Covers are public — anyone (signed-in or not) can fetch a cover image
+  // by its MinIO object key. Mounted BEFORE requireAuth so anonymous viewers
+  // can render covers in book grids.
+  app.use('/api/v1/covers', require('./routes/covers'));
+
   // ---- JWT gate: every /api/v1/* route mounted AFTER this line is protected.
   // The discovery banner + /api/v1/auth/* + /api/v1/users/* land above this
   // line and stay public.

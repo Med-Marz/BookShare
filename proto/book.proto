@@ -10,6 +10,8 @@ package book;
 
 service BookService {
   rpc AddBook (AddBookRequest) returns (AddBookResponse);
+  rpc GetBook (GetBookRequest) returns (GetBookResponse);
+  rpc EditBook (EditBookRequest) returns (EditBookResponse);
   rpc GetCoverBytes (GetCoverBytesRequest) returns (GetCoverBytesResponse);
   rpc ListBooksByOwner (ListBooksByOwnerRequest) returns (ListBooksByOwnerResponse);
 }
@@ -56,4 +58,23 @@ message ListBooksByOwnerRequest {
 
 message ListBooksByOwnerResponse {
   repeated Book books = 1;
+}
+
+message GetBookRequest {
+  string book_id = 1;
+}
+
+message GetBookResponse {
+  Book book = 1;
+}
+
+message EditBookRequest {
+  string book_id = 1;
+  string title = 2;
+  string author = 3;
+  int32  year_published = 4;
+}
+
+message EditBookResponse {
+  Book book = 1;
 }

@@ -138,6 +138,73 @@ function makeHandlers(logger) {
       }
     },
 
+    async DeleteBook(call, callback) {
+      const bookId = call.request?.book_id;
+      const metaUser = call.metadata.get('x-user-id')[0];
+
+      if (!bookId) {
+        return callback({
+          code: grpc.status.INVALID_ARGUMENT,
+          message: 'book_id is required',
+        });
+      }
+      if (!metaUser) {
+        return callback({
+          code: grpc.status.PERMISSION_DENIED,
+          message: 'missing x-user-id metadata',
+        });
+      }
+
+      try {
+        const doc = await db.collection.findOne({ selector: { id: bookId } }).exec();
+        if (!doc) {
+          return callback({ code: grpc.status.NOT_FOUND, message: 'book not found' });
+        }
+        if (doc.owner_id !== metaUser) {
+          return callback({
+            code: grpc.status.PERMISSION_DENIED,
+            message: 'only the book owner can delete this book',
+          });
+        }
+        if (doc.status !== 'Available') {
+          return callback({
+            code: grpc.status.FAILED_PRECONDITION,
+            message: 'cannot delete a book that is currently reserved or lent out',
+          });
+        }
+
+        const coverKey = doc.cover_object_key;
+        await doc.remove();
+
+        // Best-effort delete of the cover object. Failure must NOT fail the
+        // request — the book document is already gone from RxDB.
+        if (coverKey) {
+          minio
+            .removeCover(coverKey)
+            .catch((err) =>
+              logger.warn({ err, object_key: coverKey }, 'cover delete failed'),
+            );
+        }
+
+        logger.info(
+          {
+            event: 'book.deleted',
+            book_id: bookId,
+            owner_id: metaUser,
+            cover_object_key: coverKey,
+          },
+          'book deleted',
+        );
+        return callback(null, {});
+      } catch (err) {
+        logger.error({ err, book_id: bookId }, 'DeleteBook failed');
+        return callback({
+          code: grpc.status.INTERNAL,
+          message: 'failed to delete book',
+        });
+      }
+    },
+
     async ReplaceCover(call, callback) {
       const bookId = call.request?.book_id;
       const metaUser = call.metadata.get('x-user-id')[0];

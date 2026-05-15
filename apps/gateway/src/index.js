@@ -13,7 +13,12 @@ const { requireAuth, optionalAuth, optionalAuthForGraphQL } = require('./auth');
 const resolvers = require('./resolvers');
 
 const PORT = Number.parseInt(process.env.PORT || '4000', 10);
-const WEB_ORIGIN = process.env.WEB_ORIGIN || 'http://localhost:5173';
+// Accept one origin or several (comma-separated). Dev typically allows the
+// Vite dev server (5173) and the dockerized nginx web (8080) at the same time.
+const WEB_ORIGIN = (process.env.WEB_ORIGIN || 'http://localhost:5173')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
 
 // ---- GraphQL: SDL loaded from a single .gql file so the schema can grow
 // without bloating this entrypoint. Resolvers live alongside in src/resolvers/.
@@ -23,7 +28,7 @@ async function start() {
   const app = express();
 
   // ---- Middleware chain — order matters (NFR enforcement) ----
-  // 1. CORS: single allowed origin, no wildcard.
+  // 1. CORS: explicit allowlist of origins, no wildcard.
   app.use(cors({ origin: WEB_ORIGIN, credentials: false }));
 
   // 2. Rate limit: 100 requests / 15-minute window per IP (NFR11b).
@@ -84,7 +89,7 @@ async function start() {
     logger.info(
       {
         port: PORT,
-        web_origin: WEB_ORIGIN,
+        web_origins: WEB_ORIGIN,
         graphql: `/graphql`,
         rest_prefix: '/api/v1',
       },

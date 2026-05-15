@@ -643,7 +643,8 @@
                   "pm.test('returns Available status', () => pm.expect(body.book.status).to.eql('Available'));",
                   "pm.test('cover_object_key looks right', () => pm.expect(body.book.cover_object_key).to.match(/^covers\\//));",
                   "pm.test('owner_id matches caller', () => pm.expect(body.book.owner_id).to.eql(pm.collectionVariables.get('userId')));",
-                  "pm.collectionVariables.set('createdBookId', body.book.id);"
+                  "pm.collectionVariables.set('createdBookId', body.book.id);",
+                  "pm.collectionVariables.set('createdCoverKey', body.book.cover_object_key);"
                 ]
               }
             }
@@ -916,6 +917,85 @@
                   "const body = pm.response.json();",
                   "pm.test('GraphQL errors present', () => pm.expect(body.errors).to.be.an('array').and.not.empty);",
                   "pm.test('extensions.code is VALIDATION_ERROR', () => pm.expect(body.errors[0].extensions.code).to.eql('VALIDATION_ERROR'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Covers",
+      "description": "Public GET /api/v1/covers/:object_key \u2014 proxies MinIO through the gateway. Depends on createdCoverKey captured by the Books \u2014 Add happy path.",
+      "item": [
+        {
+          "name": "GET /api/v1/covers/:object_key \u2014 happy path (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/covers/{{createdCoverKey}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "covers",
+                "{{createdCoverKey}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('content-type starts with image/', () => {",
+                  "  const ct = pm.response.headers.get('Content-Type') || '';",
+                  "  pm.expect(ct).to.match(/^image\\//);",
+                  "});",
+                  "pm.test('cache-control set to one day public', () => {",
+                  "  pm.expect(pm.response.headers.get('Cache-Control')).to.eql('public, max-age=86400');",
+                  "});",
+                  "pm.test('body has bytes', () => {",
+                  "  pm.expect(pm.response.responseSize).to.be.greaterThan(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/covers/:object_key \u2014 unknown key (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/covers/covers/00000000-0000-0000-0000-000000000000.jpg",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "covers",
+                "covers",
+                "00000000-0000-0000-0000-000000000000.jpg"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 404', () => pm.response.to.have.status(404));",
+                  "const body = pm.response.json();",
+                  "pm.test('error code is NOT_FOUND', () => pm.expect(body.error.code).to.eql('NOT_FOUND'));"
                 ]
               }
             }

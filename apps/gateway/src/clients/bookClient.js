@@ -40,6 +40,8 @@ function unary(method) {
 module.exports = {
   client,
   addBook: unary('AddBook'),
+  getBook: unary('GetBook'),
+  editBook: unary('EditBook'),
   getCoverBytes: unary('GetCoverBytes'),
   listBooksByOwner: unary('ListBooksByOwner'),
 };

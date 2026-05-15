@@ -26,6 +26,18 @@ function Header() {
 
         <nav className="flex items-center gap-6 text-sepiaSoft">
           <NavLink
+            to="/"
+            end
+            className={({ isActive }) =>
+              `text-sm tracking-wide no-underline hover:text-bordeaux ${
+                isActive ? 'text-bordeaux' : ''
+              }`
+            }
+          >
+            Home
+          </NavLink>
+
+          <NavLink
             to="/books"
             className={({ isActive }) =>
               `text-sm tracking-wide no-underline hover:text-bordeaux ${

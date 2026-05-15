@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useLocation, useParams } from 'react-router-dom';
 import { BookOpen, LogIn, Mail, MapPin, Phone } from 'lucide-react';
 import { getUserById } from '../api/usersApi';
+import { listBooksByOwner } from '../api/booksApi';
+import BookCard from '../components/BookCard.jsx';
 import useAuth from '../auth/useAuth';
 
 function initialsFrom(name) {
@@ -21,20 +23,33 @@ function UserProfilePage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(!isOwnProfile);
   const [error, setError] = useState(null);
+  const [books, setBooks] = useState([]);
+  const [booksLoading, setBooksLoading] = useState(!isOwnProfile);
 
   useEffect(() => {
     if (isOwnProfile) return undefined;
     let cancelled = false;
     setLoading(true);
+    setBooksLoading(true);
     setError(null);
     (async () => {
       try {
         const fresh = await getUserById(id);
-        if (!cancelled) setUser(fresh);
+        if (cancelled) return;
+        setUser(fresh);
+        try {
+          const list = await listBooksByOwner(id);
+          if (!cancelled) setBooks(list);
+        } catch {
+          if (!cancelled) setBooks([]);
+        } finally {
+          if (!cancelled) setBooksLoading(false);
+        }
       } catch (err) {
         if (!cancelled) {
           const status = err?.response?.status;
           setError(status === 404 ? 'not-found' : 'fetch-failed');
+          setBooksLoading(false);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -142,17 +157,32 @@ function UserProfilePage() {
       </section>
 
       {/* ── Books listed by this reader ── */}
-      <section className="mt-6 rounded-2xl border border-dashed border-paperDark bg-ivory/70 p-6">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-cream">
-            <BookOpen className="h-5 w-5 text-bordeaux" aria-hidden="true" />
-          </span>
-          <h2 className="font-display text-lg text-sepiaDark">Books listed by this reader</h2>
-        </div>
-        <p className="mt-3 text-sm text-sepiaSoft">
-          No books listed yet — the catalog will show {user.display_name}&apos;s books here when
-          they add some.
-        </p>
+      <section className="mt-8">
+        <h2 className="font-display text-2xl text-sepiaDark">
+          Books listed by {user.display_name}
+        </h2>
+
+        {booksLoading ? (
+          <p className="mt-4 text-sepiaSoft">Loading books…</p>
+        ) : books.length > 0 ? (
+          <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {books.map((b) => (
+              <BookCard key={b.id} book={b} showStatus={false} />
+            ))}
+          </div>
+        ) : (
+          <div className="mt-4 rounded-2xl border border-dashed border-paperDark bg-ivory/70 p-6">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-cream">
+                <BookOpen className="h-5 w-5 text-bordeaux" aria-hidden="true" />
+              </span>
+              <h3 className="font-display text-lg text-sepiaDark">No books listed yet</h3>
+            </div>
+            <p className="mt-3 text-sm text-sepiaSoft">
+              The catalog will show {user.display_name}&apos;s books here when they add some.
+            </p>
+          </div>
+        )}
       </section>
     </main>
   );

@@ -301,6 +301,175 @@
       ]
     },
     {
+      "name": "Home",
+      "description": "GET /api/v1/home/recent-books \u2014 public, returns books with owner.display_name (no contact fields). GraphQL recentBooks reuses the Book.owner cross-service join.",
+      "item": [
+        {
+          "name": "GET /api/v1/home/recent-books \u2014 happy path (200, default limit 12)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/home/recent-books",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "home",
+                "recent-books"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('books is an array', () => pm.expect(body.books).to.be.an('array'));",
+                  "pm.test('length is at most 12', () => pm.expect(body.books.length).to.be.at.most(12));",
+                  "if (body.books.length > 0) {",
+                  "  const b = body.books[0];",
+                  "  pm.test('first book has id', () => pm.expect(b.id).to.be.a('string'));",
+                  "  pm.test('first book has title', () => pm.expect(b.title).to.be.a('string'));",
+                  "  pm.test('first book has cover_object_key', () => pm.expect(b.cover_object_key).to.match(/^covers\\//));",
+                  "  pm.test('first book has owner.display_name', () => pm.expect(b.owner.display_name).to.be.a('string'));",
+                  "  pm.test('first book has NO owner.email', () => pm.expect(b.owner.email).to.be.undefined);",
+                  "  pm.test('first book has NO owner.phone', () => pm.expect(b.owner.phone).to.be.undefined);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/home/recent-books?limit=3 \u2014 respects limit (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/home/recent-books?limit=3",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "home",
+                "recent-books"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "3"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('books length is at most 3', () => pm.expect(body.books.length).to.be.at.most(3));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/home/recent-books?limit=invalid \u2014 falls back to default (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/home/recent-books?limit=invalid",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "home",
+                "recent-books"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "invalid"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('books length is at most 12 (fallback)', () => pm.expect(body.books.length).to.be.at.most(12));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "query recentBooks(limit: 5) \u2014 anonymous (owner.email is null)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query R{recentBooks(limit:5){id title owner{display_name email}}}\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('no errors', () => pm.expect(body.errors).to.be.undefined);",
+                  "pm.test('recentBooks is an array', () => pm.expect(body.data.recentBooks).to.be.an('array'));",
+                  "pm.test('length is at most 5', () => pm.expect(body.data.recentBooks.length).to.be.at.most(5));",
+                  "if (body.data.recentBooks.length > 0) {",
+                  "  const b = body.data.recentBooks[0];",
+                  "  pm.test('owner.display_name is a string', () => pm.expect(b.owner.display_name).to.be.a('string'));",
+                  "  pm.test('owner.email is null for anonymous viewer', () => pm.expect(b.owner.email).to.be.null);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Profile",
       "description": "Authenticated profile read + update via /api/v1/profile. Depends on the Auth folder running first so {{token}} is set.",
       "item": [

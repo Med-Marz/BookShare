@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage.jsx';
 import MyProfilePage from './pages/MyProfilePage.jsx';
 import UserProfilePage from './pages/UserProfilePage.jsx';
 import AddBookPage from './pages/AddBookPage.jsx';
+import BookDetailPage from './pages/BookDetailPage.jsx';
 
 function Placeholder({ title, copy }) {
   return (
@@ -68,15 +69,7 @@ function App() {
             </RequireAuth>
           }
         />
-        <Route
-          path="/books/:id"
-          element={
-            <Placeholder
-              title="Book detail"
-              copy="Cover, owner, and the reserve button will land on this page in the next iteration."
-            />
-          }
-        />
+        <Route path="/books/:id" element={<BookDetailPage />} />
         <Route
           path="/reservations"
           element={

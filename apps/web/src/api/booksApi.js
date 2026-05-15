@@ -1,5 +1,12 @@
 import axios from './axios';
 
+// GET /api/v1/users/:id/books — public list of a user's books.
+// Returns an array (possibly empty); never null.
+export async function listBooksByOwner(ownerId) {
+  const res = await axios.get(`/api/v1/users/${ownerId}/books`);
+  return res.data.books || [];
+}
+
 // POST /api/v1/books (multipart). `cover` is a File from the browser.
 // Returns the created book document on success.
 export async function addBook({ title, author, year_published, cover }) {

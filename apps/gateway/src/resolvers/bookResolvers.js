@@ -44,6 +44,14 @@ module.exports = {
         throw grpcErrorToGraphQL(err);
       }
     },
+    recentBooks: async (_parent, { limit }) => {
+      try {
+        const { books } = await bookClient.listRecentBooks({ limit: limit || 12 });
+        return books || [];
+      } catch (err) {
+        throw grpcErrorToGraphQL(err);
+      }
+    },
   },
 
   User: {

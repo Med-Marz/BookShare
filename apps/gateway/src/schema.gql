@@ -59,6 +59,7 @@ type Mutation {
 
 extend type Query {
   book(id: ID!): Book!
+  recentBooks(limit: Int = 12): [Book!]!
 }
 
 type Book {

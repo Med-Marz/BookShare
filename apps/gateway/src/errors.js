@@ -13,7 +13,7 @@ const grpcToHttp = {
   [grpc.status.PERMISSION_DENIED]: { status: 403, code: 'FORBIDDEN' },
   [grpc.status.NOT_FOUND]: { status: 404, code: 'NOT_FOUND' },
   [grpc.status.ALREADY_EXISTS]: { status: 409, code: 'CONFLICT' },
-  [grpc.status.FAILED_PRECONDITION]: { status: 409, code: 'CONFLICT' },
+  [grpc.status.FAILED_PRECONDITION]: { status: 409, code: 'FAILED_PRECONDITION' },
   [grpc.status.RESOURCE_EXHAUSTED]: { status: 429, code: 'RATE_LIMITED' },
   [grpc.status.UNAVAILABLE]: { status: 503, code: 'SERVICE_UNAVAILABLE' },
   [grpc.status.INTERNAL]: { status: 500, code: 'INTERNAL_ERROR' },

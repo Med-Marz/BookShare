@@ -329,6 +329,92 @@
       ]
     },
     {
+      "name": "Users",
+      "description": "Public user profile reads at /api/v1/users/:id. Contact fields are returned only when the caller presents a valid JWT.",
+      "item": [
+        {
+          "name": "GET /users/:id — anonymous (200, no contact fields)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "{{userId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('returns id', () => pm.expect(body.id).to.eql(pm.collectionVariables.get('userId')));",
+                  "pm.test('returns display_name', () => pm.expect(body.display_name).to.be.a('string'));",
+                  "pm.test('email is omitted', () => pm.expect(body.email).to.be.undefined);",
+                  "pm.test('phone is omitted', () => pm.expect(body.phone).to.be.undefined);",
+                  "pm.test('address is omitted', () => pm.expect(body.address).to.be.undefined);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /users/:id — authenticated (200, full profile)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "{{userId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('returns id', () => pm.expect(body.id).to.eql(pm.collectionVariables.get('userId')));",
+                  "pm.test('email is populated', () => pm.expect(body.email).to.be.a('string'));",
+                  "pm.test('phone is populated', () => pm.expect(body.phone).to.be.a('string'));",
+                  "pm.test('address is populated', () => pm.expect(body.address).to.be.a('string'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /users/:id — unknown id (404)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/00000000-0000-0000-0000-000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "00000000-0000-0000-0000-000000000000"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 404', () => pm.response.to.have.status(404));",
+                  "const body = pm.response.json();",
+                  "pm.test('error.code is NOT_FOUND', () => pm.expect(body.error.code).to.eql('NOT_FOUND'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "JWT middleware",
       "description": "Smoke-tests that the gateway gates protected /api/v1/* paths after enabling JWT verification in story 1.3.",
       "item": [
@@ -587,6 +673,74 @@
                   "const body = pm.response.json();",
                   "pm.test('no errors', () => pm.expect(body.errors).to.be.undefined);",
                   "pm.test('display_name updated', () => pm.expect(body.data.updateProfile.display_name).to.eql('Test User Renamed Twice'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "query user — anonymous (null contact fields)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query GetUser($id: ID!) { user(id: $id) { id display_name email phone address } }\",\n  \"variables\": { \"id\": \"{{userId}}\" }\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('no errors', () => pm.expect(body.errors).to.be.undefined);",
+                  "pm.test('display_name populated', () => pm.expect(body.data.user.display_name).to.be.a('string'));",
+                  "pm.test('email is null', () => pm.expect(body.data.user.email).to.be.null);",
+                  "pm.test('phone is null', () => pm.expect(body.data.user.phone).to.be.null);",
+                  "pm.test('address is null', () => pm.expect(body.data.user.address).to.be.null);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "query user — authenticated (populated contact fields)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query GetUser($id: ID!) { user(id: $id) { id display_name email phone address } }\",\n  \"variables\": { \"id\": \"{{userId}}\" }\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('no errors', () => pm.expect(body.errors).to.be.undefined);",
+                  "pm.test('email is populated', () => pm.expect(body.data.user.email).to.be.a('string'));",
+                  "pm.test('phone is populated', () => pm.expect(body.data.user.phone).to.be.a('string'));",
+                  "pm.test('address is populated', () => pm.expect(body.data.user.address).to.be.a('string'));"
                 ]
               }
             }

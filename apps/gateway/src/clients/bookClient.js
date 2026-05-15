@@ -40,4 +40,5 @@ function unary(method) {
 module.exports = {
   client,
   addBook: unary('AddBook'),
+  getCoverBytes: unary('GetCoverBytes'),
 };

@@ -13,6 +13,7 @@ import BookDetailPage from './pages/BookDetailPage.jsx';
 import BrowsePage from './pages/BrowsePage.jsx';
 import SearchPage from './pages/SearchPage.jsx';
 import MyReservationsPage from './pages/MyReservationsPage.jsx';
+import NotificationsPage from './pages/NotificationsPage.jsx';
 
 function Placeholder({ title, copy }) {
   return (
@@ -77,10 +78,9 @@ function App() {
         <Route
           path="/notifications"
           element={
-            <Placeholder
-              title="Notifications"
-              copy="Reservation activity and lending updates will appear here when the notifications stream is connected."
-            />
+            <RequireAuth>
+              <NotificationsPage />
+            </RequireAuth>
           }
         />
         <Route

@@ -42,7 +42,7 @@
       "description": "Signup + login. Each request runs in order; the signup happy-path saves the test email/password so later requests can reuse them.",
       "item": [
         {
-          "name": "POST /auth/signup \u2014 happy path",
+          "name": "POST /auth/signup — happy path",
           "request": {
             "method": "POST",
             "header": [
@@ -89,7 +89,7 @@
           ]
         },
         {
-          "name": "POST /auth/signup \u2014 duplicate email (409)",
+          "name": "POST /auth/signup — duplicate email (409)",
           "request": {
             "method": "POST",
             "header": [
@@ -130,7 +130,7 @@
           ]
         },
         {
-          "name": "POST /auth/signup \u2014 short password (400)",
+          "name": "POST /auth/signup — short password (400)",
           "request": {
             "method": "POST",
             "header": [
@@ -172,7 +172,7 @@
           ]
         },
         {
-          "name": "POST /auth/login \u2014 happy path",
+          "name": "POST /auth/login — happy path",
           "request": {
             "method": "POST",
             "header": [
@@ -216,7 +216,7 @@
           ]
         },
         {
-          "name": "POST /auth/login \u2014 wrong password (401)",
+          "name": "POST /auth/login — wrong password (401)",
           "request": {
             "method": "POST",
             "header": [
@@ -258,7 +258,7 @@
           ]
         },
         {
-          "name": "POST /auth/login \u2014 unknown email (401)",
+          "name": "POST /auth/login — unknown email (401)",
           "request": {
             "method": "POST",
             "header": [
@@ -302,10 +302,10 @@
     },
     {
       "name": "Home",
-      "description": "GET /api/v1/home/recent-books \u2014 public, returns books with owner.display_name (no contact fields). GraphQL recentBooks reuses the Book.owner cross-service join.",
+      "description": "GET /api/v1/home/recent-books — public, returns books with owner.display_name (no contact fields). GraphQL recentBooks reuses the Book.owner cross-service join.",
       "item": [
         {
-          "name": "GET /api/v1/home/recent-books \u2014 happy path (200, default limit 12)",
+          "name": "GET /api/v1/home/recent-books — happy path (200, default limit 12)",
           "request": {
             "method": "GET",
             "header": [],
@@ -347,7 +347,7 @@
           ]
         },
         {
-          "name": "GET /api/v1/home/recent-books?limit=3 \u2014 respects limit (200)",
+          "name": "GET /api/v1/home/recent-books?limit=3 — respects limit (200)",
           "request": {
             "method": "GET",
             "header": [],
@@ -385,7 +385,7 @@
           ]
         },
         {
-          "name": "GET /api/v1/home/recent-books?limit=invalid \u2014 falls back to default (200)",
+          "name": "GET /api/v1/home/recent-books?limit=invalid — falls back to default (200)",
           "request": {
             "method": "GET",
             "header": [],
@@ -423,7 +423,7 @@
           ]
         },
         {
-          "name": "query recentBooks(limit: 5) \u2014 anonymous (owner.email is null)",
+          "name": "query recentBooks(limit: 5) — anonymous (owner.email is null)",
           "request": {
             "method": "POST",
             "header": [
@@ -474,7 +474,7 @@
       "description": "Authenticated profile read + update via /api/v1/profile. Depends on the Auth folder running first so {{token}} is set.",
       "item": [
         {
-          "name": "GET /profile \u2014 happy path (200)",
+          "name": "GET /profile — happy path (200)",
           "request": {
             "method": "GET",
             "header": [
@@ -514,7 +514,7 @@
           ]
         },
         {
-          "name": "GET /profile \u2014 no token (401)",
+          "name": "GET /profile — no token (401)",
           "request": {
             "method": "GET",
             "url": {
@@ -544,7 +544,7 @@
           ]
         },
         {
-          "name": "PUT /profile \u2014 update display_name (200)",
+          "name": "PUT /profile — update display_name (200)",
           "request": {
             "method": "PUT",
             "header": [
@@ -588,7 +588,7 @@
           ]
         },
         {
-          "name": "PUT /profile \u2014 with email key (400)",
+          "name": "PUT /profile — with email key (400)",
           "request": {
             "method": "PUT",
             "header": [
@@ -639,7 +639,7 @@
       "description": "Public user profile reads at /api/v1/users/:id. Contact fields are returned only when the caller presents a valid JWT.",
       "item": [
         {
-          "name": "GET /users/:id \u2014 anonymous (200, no contact fields)",
+          "name": "GET /users/:id — anonymous (200, no contact fields)",
           "request": {
             "method": "GET",
             "url": {
@@ -674,7 +674,7 @@
           ]
         },
         {
-          "name": "GET /users/:id \u2014 authenticated (200, full profile)",
+          "name": "GET /users/:id — authenticated (200, full profile)",
           "request": {
             "method": "GET",
             "header": [
@@ -714,7 +714,7 @@
           ]
         },
         {
-          "name": "GET /users/:id \u2014 unknown id (404)",
+          "name": "GET /users/:id — unknown id (404)",
           "request": {
             "method": "GET",
             "url": {
@@ -747,11 +747,11 @@
       ]
     },
     {
-      "name": "Books \u2014 Add",
+      "name": "Books — Add",
       "description": "POST /api/v1/books (multipart) and GraphQL addBook. Depends on token captured by the Auth folder's signup test.",
       "item": [
         {
-          "name": "POST /api/v1/books \u2014 happy path (201)",
+          "name": "POST /api/v1/books — happy path (201)",
           "request": {
             "method": "POST",
             "header": [
@@ -820,7 +820,7 @@
           ]
         },
         {
-          "name": "POST /api/v1/books \u2014 missing cover (400)",
+          "name": "POST /api/v1/books — missing cover (400)",
           "request": {
             "method": "POST",
             "header": [
@@ -877,7 +877,7 @@
           ]
         },
         {
-          "name": "POST /api/v1/books \u2014 missing title (400)",
+          "name": "POST /api/v1/books — missing title (400)",
           "request": {
             "method": "POST",
             "header": [
@@ -934,7 +934,7 @@
           ]
         },
         {
-          "name": "POST /api/v1/books \u2014 no JWT (401)",
+          "name": "POST /api/v1/books — no JWT (401)",
           "request": {
             "method": "POST",
             "header": [],
@@ -990,7 +990,7 @@
           ]
         },
         {
-          "name": "mutation addBook \u2014 happy path (200)",
+          "name": "mutation addBook — happy path (200)",
           "request": {
             "method": "POST",
             "header": [
@@ -1049,7 +1049,7 @@
           ]
         },
         {
-          "name": "mutation addBook \u2014 missing cover_base64 (errors)",
+          "name": "mutation addBook — missing cover_base64 (errors)",
           "request": {
             "method": "POST",
             "header": [
@@ -1094,11 +1094,11 @@
       ]
     },
     {
-      "name": "Books \u2014 Browse",
-      "description": "GET /api/v1/books \u2014 paginated public catalog. Runs after Books \u2014 Add so the catalog is non-empty.",
+      "name": "Books — Browse",
+      "description": "GET /api/v1/books — paginated public catalog. Runs after Books — Add so the catalog is non-empty.",
       "item": [
         {
-          "name": "GET /api/v1/books \u2014 happy path (200)",
+          "name": "GET /api/v1/books — happy path (200)",
           "request": {
             "method": "GET",
             "header": [],
@@ -1137,7 +1137,7 @@
           ]
         },
         {
-          "name": "GET /api/v1/books?limit=2 \u2014 captures cursor (200)",
+          "name": "GET /api/v1/books?limit=2 — captures cursor (200)",
           "request": {
             "method": "GET",
             "header": [],
@@ -1178,7 +1178,7 @@
           ]
         },
         {
-          "name": "GET /api/v1/books?cursor=... \u2014 second page no duplicates (200)",
+          "name": "GET /api/v1/books?cursor=... — second page no duplicates (200)",
           "request": {
             "method": "GET",
             "header": [],
@@ -1232,7 +1232,7 @@
           ]
         },
         {
-          "name": "query books(limit: 3) \u2014 anonymous (owner.email is null)",
+          "name": "query books(limit: 3) — anonymous (owner.email is null)",
           "request": {
             "method": "POST",
             "header": [
@@ -1280,10 +1280,10 @@
     },
     {
       "name": "Search",
-      "description": "GET /api/v1/search?q=... (public) \u2014 title/author + owner-name search. Includes the Book.my_active_reservation null stub.",
+      "description": "GET /api/v1/search?q=... (public) — title/author + owner-name search. Includes the Book.my_active_reservation null stub.",
       "item": [
         {
-          "name": "GET /api/v1/search?q=art \u2014 title match (200)",
+          "name": "GET /api/v1/search?q=art — title match (200)",
           "request": {
             "method": "GET",
             "header": [],
@@ -1326,7 +1326,7 @@
           ]
         },
         {
-          "name": "GET /api/v1/search?q=mohamed \u2014 owner match (200)",
+          "name": "GET /api/v1/search?q=mohamed — owner match (200)",
           "request": {
             "method": "GET",
             "header": [],
@@ -1367,7 +1367,7 @@
           ]
         },
         {
-          "name": "GET /api/v1/search?q= \u2014 empty query (400)",
+          "name": "GET /api/v1/search?q= — empty query (400)",
           "request": {
             "method": "GET",
             "header": [],
@@ -1404,7 +1404,7 @@
           ]
         },
         {
-          "name": "query search(q) \u2014 anonymous (owner.email null)",
+          "name": "query search(q) — anonymous (owner.email null)",
           "request": {
             "method": "POST",
             "header": [
@@ -1448,7 +1448,7 @@
           ]
         },
         {
-          "name": "query book(id) { my_active_reservation } \u2014 null today",
+          "name": "query book(id) { my_active_reservation } — null today",
           "request": {
             "method": "POST",
             "header": [
@@ -1490,10 +1490,10 @@
     },
     {
       "name": "Covers",
-      "description": "Public GET /api/v1/covers/:object_key \u2014 proxies MinIO through the gateway. Depends on createdCoverKey captured by the Books \u2014 Add happy path.",
+      "description": "Public GET /api/v1/covers/:object_key — proxies MinIO through the gateway. Depends on createdCoverKey captured by the Books — Add happy path.",
       "item": [
         {
-          "name": "GET /api/v1/covers/:object_key \u2014 happy path (200)",
+          "name": "GET /api/v1/covers/:object_key — happy path (200)",
           "request": {
             "method": "GET",
             "header": [],
@@ -1533,7 +1533,7 @@
           ]
         },
         {
-          "name": "GET /api/v1/covers/:object_key \u2014 unknown key (404)",
+          "name": "GET /api/v1/covers/:object_key — unknown key (404)",
           "request": {
             "method": "GET",
             "header": [],
@@ -1568,11 +1568,11 @@
       ]
     },
     {
-      "name": "Books \u2014 List",
-      "description": "GET /api/v1/users/:id/books REST + GraphQL user(id) { books }. Depends on Auth folder for {{userId}}/{{token}} and Books \u2014 Add for the previously created book.",
+      "name": "Books — List",
+      "description": "GET /api/v1/users/:id/books REST + GraphQL user(id) { books }. Depends on Auth folder for {{userId}}/{{token}} and Books — Add for the previously created book.",
       "item": [
         {
-          "name": "GET /api/v1/users/:id/books \u2014 own user (200 with the book added)",
+          "name": "GET /api/v1/users/:id/books — own user (200 with the book added)",
           "request": {
             "method": "GET",
             "header": [],
@@ -1610,7 +1610,7 @@
           ]
         },
         {
-          "name": "POST /auth/signup \u2014 second user (sets up empty-user test)",
+          "name": "POST /auth/signup — second user (sets up empty-user test)",
           "request": {
             "method": "POST",
             "header": [
@@ -1651,7 +1651,7 @@
           ]
         },
         {
-          "name": "GET /api/v1/users/:id/books \u2014 empty user (200, empty array)",
+          "name": "GET /api/v1/users/:id/books — empty user (200, empty array)",
           "request": {
             "method": "GET",
             "header": [],
@@ -1685,7 +1685,7 @@
           ]
         },
         {
-          "name": "query user(id) { books } \u2014 cross-service join (200)",
+          "name": "query user(id) { books } — cross-service join (200)",
           "request": {
             "method": "POST",
             "header": [
@@ -1729,11 +1729,11 @@
       ]
     },
     {
-      "name": "Books \u2014 Edit",
+      "name": "Books — Edit",
       "description": "PUT /api/v1/books/:id (owner-only) + public GET /api/v1/books/:id + GraphQL book(id) cross-service join + editBook mutation.",
       "item": [
         {
-          "name": "PUT /api/v1/books/:id \u2014 own book happy path (200)",
+          "name": "PUT /api/v1/books/:id — own book happy path (200)",
           "request": {
             "method": "PUT",
             "header": [
@@ -1780,7 +1780,7 @@
           ]
         },
         {
-          "name": "GET /api/v1/books/:id \u2014 anonymous (200)",
+          "name": "GET /api/v1/books/:id — anonymous (200)",
           "request": {
             "method": "GET",
             "header": [],
@@ -1814,7 +1814,7 @@
           ]
         },
         {
-          "name": "GET /api/v1/books/:id \u2014 unknown id (404)",
+          "name": "GET /api/v1/books/:id — unknown id (404)",
           "request": {
             "method": "GET",
             "header": [],
@@ -1846,7 +1846,7 @@
           ]
         },
         {
-          "name": "POST /auth/signup \u2014 third user (sets up non-owner test)",
+          "name": "POST /auth/signup — third user (sets up non-owner test)",
           "request": {
             "method": "POST",
             "header": [
@@ -1887,7 +1887,7 @@
           ]
         },
         {
-          "name": "PUT /api/v1/books/:id \u2014 non-owner (403)",
+          "name": "PUT /api/v1/books/:id — non-owner (403)",
           "request": {
             "method": "PUT",
             "header": [
@@ -1932,7 +1932,7 @@
           ]
         },
         {
-          "name": "PUT /api/v1/books/:id \u2014 empty patch (400)",
+          "name": "PUT /api/v1/books/:id — empty patch (400)",
           "request": {
             "method": "PUT",
             "header": [
@@ -1977,7 +1977,7 @@
           ]
         },
         {
-          "name": "PUT /api/v1/books/:id \u2014 unknown id (404)",
+          "name": "PUT /api/v1/books/:id — unknown id (404)",
           "request": {
             "method": "PUT",
             "header": [
@@ -2022,7 +2022,7 @@
           ]
         },
         {
-          "name": "query book(id) { owner } \u2014 anonymous (contact fields null)",
+          "name": "query book(id) { owner } — anonymous (contact fields null)",
           "request": {
             "method": "POST",
             "header": [
@@ -2063,7 +2063,7 @@
           ]
         },
         {
-          "name": "query book(id) { owner } \u2014 authenticated (contact fields populated)",
+          "name": "query book(id) { owner } — authenticated (contact fields populated)",
           "request": {
             "method": "POST",
             "header": [
@@ -2106,7 +2106,7 @@
           ]
         },
         {
-          "name": "mutation editBook(id, input) \u2014 happy path",
+          "name": "mutation editBook(id, input) — happy path",
           "request": {
             "method": "POST",
             "header": [
@@ -2151,11 +2151,11 @@
       ]
     },
     {
-      "name": "Books \u2014 Replace cover",
-      "description": "PUT /api/v1/books/:id/cover \u2014 owner-only multipart upload. Rotates cover_object_key.",
+      "name": "Books — Replace cover",
+      "description": "PUT /api/v1/books/:id/cover — owner-only multipart upload. Rotates cover_object_key.",
       "item": [
         {
-          "name": "PUT /api/v1/books/:id/cover \u2014 own book happy path (200)",
+          "name": "PUT /api/v1/books/:id/cover — own book happy path (200)",
           "request": {
             "method": "PUT",
             "header": [
@@ -2206,7 +2206,7 @@
           ]
         },
         {
-          "name": "PUT /api/v1/books/:id/cover \u2014 missing cover (400)",
+          "name": "PUT /api/v1/books/:id/cover — missing cover (400)",
           "request": {
             "method": "PUT",
             "header": [
@@ -2248,7 +2248,7 @@
           ]
         },
         {
-          "name": "PUT /api/v1/books/:id/cover \u2014 non-owner (403)",
+          "name": "PUT /api/v1/books/:id/cover — non-owner (403)",
           "request": {
             "method": "PUT",
             "header": [
@@ -2296,7 +2296,7 @@
           ]
         },
         {
-          "name": "PUT /api/v1/books/:id/cover \u2014 unknown id (404)",
+          "name": "PUT /api/v1/books/:id/cover — unknown id (404)",
           "request": {
             "method": "PUT",
             "header": [
@@ -2350,7 +2350,7 @@
       "description": "Reserve / Cancel / StartLoan / MarkReturned lifecycle. Verifies Kafka propagates book status. Uses {{token}} (owner of createdBookId) and {{thirdToken}} (non-owner borrower).",
       "item": [
         {
-          "name": "POST /books/:id/reservations \u2014 owner reserves own book (400)",
+          "name": "POST /books/:id/reservations — owner reserves own book (400)",
           "request": {
             "method": "POST",
             "header": [
@@ -2388,7 +2388,7 @@
           ]
         },
         {
-          "name": "POST /books/:id/reservations \u2014 happy path (201)",
+          "name": "POST /books/:id/reservations — happy path (201)",
           "request": {
             "method": "POST",
             "header": [
@@ -2428,7 +2428,7 @@
           ]
         },
         {
-          "name": "WAIT \u2014 Kafka propagation 1",
+          "name": "WAIT — Kafka propagation 1",
           "request": {
             "method": "GET",
             "header": [],
@@ -2448,14 +2448,14 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "// no-op \u2014 adds ~50ms of network slack for Kafka propagation"
+                  "// no-op — adds ~50ms of network slack for Kafka propagation"
                 ]
               }
             }
           ]
         },
         {
-          "name": "WAIT \u2014 Kafka propagation 2",
+          "name": "WAIT — Kafka propagation 2",
           "request": {
             "method": "GET",
             "header": [],
@@ -2475,14 +2475,14 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "// no-op \u2014 adds ~50ms of network slack for Kafka propagation"
+                  "// no-op — adds ~50ms of network slack for Kafka propagation"
                 ]
               }
             }
           ]
         },
         {
-          "name": "GET /books/:id \u2014 status is Reserved after reserve",
+          "name": "GET /books/:id — status is Reserved after reserve",
           "request": {
             "method": "GET",
             "header": [],
@@ -2514,7 +2514,7 @@
           ]
         },
         {
-          "name": "DELETE /reservations/:id \u2014 non-borrower (403)",
+          "name": "DELETE /reservations/:id — non-borrower (403)",
           "request": {
             "method": "DELETE",
             "header": [
@@ -2551,7 +2551,7 @@
           ]
         },
         {
-          "name": "DELETE /reservations/:id \u2014 happy path (200)",
+          "name": "DELETE /reservations/:id — happy path (200)",
           "request": {
             "method": "DELETE",
             "header": [
@@ -2588,7 +2588,7 @@
           ]
         },
         {
-          "name": "WAIT \u2014 Kafka propagation cancel 1",
+          "name": "WAIT — Kafka propagation cancel 1",
           "request": {
             "method": "GET",
             "header": [],
@@ -2608,14 +2608,14 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "// no-op \u2014 adds ~50ms of network slack for Kafka propagation"
+                  "// no-op — adds ~50ms of network slack for Kafka propagation"
                 ]
               }
             }
           ]
         },
         {
-          "name": "WAIT \u2014 Kafka propagation cancel 2",
+          "name": "WAIT — Kafka propagation cancel 2",
           "request": {
             "method": "GET",
             "header": [],
@@ -2635,14 +2635,14 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "// no-op \u2014 adds ~50ms of network slack for Kafka propagation"
+                  "// no-op — adds ~50ms of network slack for Kafka propagation"
                 ]
               }
             }
           ]
         },
         {
-          "name": "GET /books/:id \u2014 status is Available after cancel",
+          "name": "GET /books/:id — status is Available after cancel",
           "request": {
             "method": "GET",
             "header": [],
@@ -2674,7 +2674,7 @@
           ]
         },
         {
-          "name": "POST /books/:id/reservations \u2014 re-reserve for loan test",
+          "name": "POST /books/:id/reservations — re-reserve for loan test",
           "request": {
             "method": "POST",
             "header": [
@@ -2712,7 +2712,7 @@
           ]
         },
         {
-          "name": "WAIT \u2014 Kafka after re-reserve",
+          "name": "WAIT — Kafka after re-reserve",
           "request": {
             "method": "GET",
             "header": [],
@@ -2732,14 +2732,14 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "// no-op \u2014 adds ~50ms of network slack for Kafka propagation"
+                  "// no-op — adds ~50ms of network slack for Kafka propagation"
                 ]
               }
             }
           ]
         },
         {
-          "name": "POST /reservations/:id/start-loan \u2014 non-owner (403)",
+          "name": "POST /reservations/:id/start-loan — non-owner (403)",
           "request": {
             "method": "POST",
             "header": [
@@ -2777,7 +2777,7 @@
           ]
         },
         {
-          "name": "POST /reservations/:id/start-loan \u2014 happy path (200)",
+          "name": "POST /reservations/:id/start-loan — happy path (200)",
           "request": {
             "method": "POST",
             "header": [
@@ -2815,7 +2815,7 @@
           ]
         },
         {
-          "name": "WAIT \u2014 Kafka loan started 1",
+          "name": "WAIT — Kafka loan started 1",
           "request": {
             "method": "GET",
             "header": [],
@@ -2835,14 +2835,14 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "// no-op \u2014 adds ~50ms of network slack for Kafka propagation"
+                  "// no-op — adds ~50ms of network slack for Kafka propagation"
                 ]
               }
             }
           ]
         },
         {
-          "name": "WAIT \u2014 Kafka loan started 2",
+          "name": "WAIT — Kafka loan started 2",
           "request": {
             "method": "GET",
             "header": [],
@@ -2862,14 +2862,14 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "// no-op \u2014 adds ~50ms of network slack for Kafka propagation"
+                  "// no-op — adds ~50ms of network slack for Kafka propagation"
                 ]
               }
             }
           ]
         },
         {
-          "name": "GET /books/:id \u2014 status is Lent Out after start-loan",
+          "name": "GET /books/:id — status is Lent Out after start-loan",
           "request": {
             "method": "GET",
             "header": [],
@@ -2901,7 +2901,7 @@
           ]
         },
         {
-          "name": "POST /reservations/:id/mark-returned \u2014 non-owner (403)",
+          "name": "POST /reservations/:id/mark-returned — non-owner (403)",
           "request": {
             "method": "POST",
             "header": [
@@ -2937,7 +2937,7 @@
           ]
         },
         {
-          "name": "POST /reservations/:id/mark-returned \u2014 happy path (200)",
+          "name": "POST /reservations/:id/mark-returned — happy path (200)",
           "request": {
             "method": "POST",
             "header": [
@@ -2975,7 +2975,7 @@
           ]
         },
         {
-          "name": "WAIT \u2014 Kafka returned 1",
+          "name": "WAIT — Kafka returned 1",
           "request": {
             "method": "GET",
             "header": [],
@@ -2995,14 +2995,14 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "// no-op \u2014 adds ~50ms of network slack for Kafka propagation"
+                  "// no-op — adds ~50ms of network slack for Kafka propagation"
                 ]
               }
             }
           ]
         },
         {
-          "name": "WAIT \u2014 Kafka returned 2",
+          "name": "WAIT — Kafka returned 2",
           "request": {
             "method": "GET",
             "header": [],
@@ -3022,14 +3022,14 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "// no-op \u2014 adds ~50ms of network slack for Kafka propagation"
+                  "// no-op — adds ~50ms of network slack for Kafka propagation"
                 ]
               }
             }
           ]
         },
         {
-          "name": "GET /books/:id \u2014 status back to Available after mark-returned",
+          "name": "GET /books/:id — status back to Available after mark-returned",
           "request": {
             "method": "GET",
             "header": [],
@@ -3061,7 +3061,7 @@
           ]
         },
         {
-          "name": "mutation reserveBook(book_id) \u2014 happy path",
+          "name": "mutation reserveBook(book_id) — happy path",
           "request": {
             "method": "POST",
             "header": [
@@ -3105,7 +3105,7 @@
           ]
         },
         {
-          "name": "WAIT \u2014 Kafka after gql reserve",
+          "name": "WAIT — Kafka after gql reserve",
           "request": {
             "method": "GET",
             "header": [],
@@ -3125,14 +3125,14 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "// no-op \u2014 adds ~50ms of network slack for Kafka propagation"
+                  "// no-op — adds ~50ms of network slack for Kafka propagation"
                 ]
               }
             }
           ]
         },
         {
-          "name": "query book(id) { my_active_reservation } \u2014 borrower sees their reservation",
+          "name": "query book(id) { my_active_reservation } — borrower sees their reservation",
           "request": {
             "method": "POST",
             "header": [
@@ -3175,7 +3175,7 @@
           ]
         },
         {
-          "name": "DELETE /reservations/:id \u2014 cleanup gql reservation",
+          "name": "DELETE /reservations/:id — cleanup gql reservation",
           "request": {
             "method": "DELETE",
             "header": [
@@ -3212,11 +3212,266 @@
       ]
     },
     {
-      "name": "Books \u2014 Delete",
+      "name": "Me",
+      "item": [
+        {
+          "name": "GET /me/reservations — borrower (200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{thirdToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "me",
+                "reservations"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('reservations is array', () => pm.expect(body.reservations).to.be.an('array'));",
+                  "pm.test('at least one reservation exists', () => pm.expect(body.reservations.length).to.be.at.least(1));",
+                  "const r = body.reservations[0];",
+                  "pm.test('first entry has book object', () => pm.expect(r.book).to.be.an('object'));",
+                  "pm.test('book has title', () => pm.expect(r.book.title).to.be.a('string'));",
+                  "pm.test('first entry has owner object', () => pm.expect(r.owner).to.be.an('object'));",
+                  "pm.test('owner has display_name', () => pm.expect(r.owner.display_name).to.be.a('string'));",
+                  "pm.test('owner email visible to borrower', () => pm.expect(r.owner.email).to.be.a('string').and.not.empty);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /me/reservations — anonymous (401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "me",
+                "reservations"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 401', () => pm.response.to.have.status(401));",
+                  "const body = pm.response.json();",
+                  "pm.test('code is AUTHENTICATION_REQUIRED', () => pm.expect(body.error.code).to.eql('AUTHENTICATION_REQUIRED'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /me/owned-reservations — owner (200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/owned-reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "me",
+                "owned-reservations"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('reservations is array', () => pm.expect(body.reservations).to.be.an('array'));",
+                  "pm.test('at least one reservation', () => pm.expect(body.reservations.length).to.be.at.least(1));",
+                  "const r = body.reservations[0];",
+                  "pm.test('first entry has borrower object', () => pm.expect(r.borrower).to.be.an('object'));",
+                  "pm.test('borrower has display_name', () => pm.expect(r.borrower.display_name).to.be.a('string'));",
+                  "pm.test('borrower email visible to owner', () => pm.expect(r.borrower.email).to.be.a('string').and.not.empty);",
+                  "pm.test('book is populated', () => pm.expect(r.book.title).to.be.a('string'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /me/activity — owner (200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/activity",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "me",
+                "activity"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('activeReservationCount is number', () => pm.expect(body.activeReservationCount).to.be.a('number'));",
+                  "pm.test('listedBookCount is number', () => pm.expect(body.listedBookCount).to.be.a('number'));",
+                  "pm.test('owner listed at least 1 book', () => pm.expect(body.listedBookCount).to.be.at.least(1));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "query { myReservations } — round-trip",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{thirdToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query{myReservations{id state book{id title} owner{id display_name email}}}\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('no errors', () => pm.expect(body.errors).to.be.undefined);",
+                  "pm.test('myReservations is array', () => pm.expect(body.data.myReservations).to.be.an('array'));",
+                  "pm.test('at least one reservation', () => pm.expect(body.data.myReservations.length).to.be.at.least(1));",
+                  "const r = body.data.myReservations[0];",
+                  "pm.test('book.title populated', () => pm.expect(r.book.title).to.be.a('string'));",
+                  "pm.test('owner.email populated for borrower', () => pm.expect(r.owner.email).to.be.a('string').and.not.empty);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "query { me.activity } — round-trip",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query{me{activity{active_reservation_count listed_book_count}}}\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('no errors', () => pm.expect(body.errors).to.be.undefined);",
+                  "pm.test('active_reservation_count is number', () => pm.expect(body.data.me.activity.active_reservation_count).to.be.a('number'));",
+                  "pm.test('listed_book_count is number', () => pm.expect(body.data.me.activity.listed_book_count).to.be.a('number'));",
+                  "pm.test('owner has at least 1 listed book', () => pm.expect(body.data.me.activity.listed_book_count).to.be.at.least(1));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Books — Delete",
       "description": "DELETE /api/v1/books/:id (owner-only) + GraphQL deleteBook. WARNING: the happy-path test permanently removes {{createdBookId}}; folder must run BEFORE any further test referencing that variable.",
       "item": [
         {
-          "name": "DELETE /api/v1/books/:id \u2014 non-owner (403)",
+          "name": "DELETE /api/v1/books/:id — non-owner (403)",
           "request": {
             "method": "DELETE",
             "header": [
@@ -3253,7 +3508,7 @@
           ]
         },
         {
-          "name": "DELETE /api/v1/books/:id \u2014 unknown id (404)",
+          "name": "DELETE /api/v1/books/:id — unknown id (404)",
           "request": {
             "method": "DELETE",
             "header": [
@@ -3290,7 +3545,7 @@
           ]
         },
         {
-          "name": "mutation deleteBook(id) \u2014 non-owner (FORBIDDEN)",
+          "name": "mutation deleteBook(id) — non-owner (FORBIDDEN)",
           "request": {
             "method": "POST",
             "header": [
@@ -3333,7 +3588,7 @@
           ]
         },
         {
-          "name": "DELETE /api/v1/books/:id \u2014 own book happy path (204)",
+          "name": "DELETE /api/v1/books/:id — own book happy path (204)",
           "request": {
             "method": "DELETE",
             "header": [
@@ -3369,7 +3624,7 @@
           ]
         },
         {
-          "name": "GET /api/v1/books/:id \u2014 deleted book is gone (404)",
+          "name": "GET /api/v1/books/:id — deleted book is gone (404)",
           "request": {
             "method": "GET",
             "header": [],
@@ -3407,7 +3662,7 @@
       "description": "Smoke-tests that the gateway gates protected /api/v1/* paths after enabling JWT verification in story 1.3.",
       "item": [
         {
-          "name": "GET /api/v1 \u2014 public discovery banner (200)",
+          "name": "GET /api/v1 — public discovery banner (200)",
           "request": {
             "method": "GET",
             "url": {
@@ -3436,7 +3691,7 @@
           ]
         },
         {
-          "name": "GET /api/v1/foobar \u2014 protected, no token (401)",
+          "name": "GET /api/v1/foobar — protected, no token (401)",
           "request": {
             "method": "GET",
             "url": {
@@ -3466,7 +3721,7 @@
           ]
         },
         {
-          "name": "GET /api/v1/foobar \u2014 protected, bad token (401)",
+          "name": "GET /api/v1/foobar — protected, bad token (401)",
           "request": {
             "method": "GET",
             "header": [
@@ -3502,7 +3757,7 @@
           ]
         },
         {
-          "name": "GET /api/v1/foobar \u2014 protected, valid token (404)",
+          "name": "GET /api/v1/foobar — protected, valid token (404)",
           "request": {
             "method": "GET",
             "header": [
@@ -3529,7 +3784,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('status is 404 \u2014 auth passed, route just does not exist yet', () => pm.response.to.have.status(404));"
+                  "pm.test('status is 404 — auth passed, route just does not exist yet', () => pm.response.to.have.status(404));"
                 ]
               }
             }
@@ -3542,7 +3797,7 @@
       "description": "Signup and login via the /graphql endpoint.",
       "item": [
         {
-          "name": "mutation signup \u2014 happy path",
+          "name": "mutation signup — happy path",
           "request": {
             "method": "POST",
             "header": [
@@ -3583,7 +3838,7 @@
           ]
         },
         {
-          "name": "mutation login \u2014 happy path",
+          "name": "mutation login — happy path",
           "request": {
             "method": "POST",
             "header": [
@@ -3623,7 +3878,7 @@
           ]
         },
         {
-          "name": "query profile \u2014 happy path (200)",
+          "name": "query profile — happy path (200)",
           "request": {
             "method": "POST",
             "header": [
@@ -3666,7 +3921,7 @@
           ]
         },
         {
-          "name": "query profile \u2014 no token (401)",
+          "name": "query profile — no token (401)",
           "request": {
             "method": "POST",
             "header": [
@@ -3704,7 +3959,7 @@
           ]
         },
         {
-          "name": "mutation updateProfile \u2014 happy path (200)",
+          "name": "mutation updateProfile — happy path (200)",
           "request": {
             "method": "POST",
             "header": [
@@ -3747,7 +4002,7 @@
           ]
         },
         {
-          "name": "query user \u2014 anonymous (null contact fields)",
+          "name": "query user — anonymous (null contact fields)",
           "request": {
             "method": "POST",
             "header": [
@@ -3789,7 +4044,7 @@
           ]
         },
         {
-          "name": "query user \u2014 authenticated (populated contact fields)",
+          "name": "query user — authenticated (populated contact fields)",
           "request": {
             "method": "POST",
             "header": [
@@ -3834,7 +4089,7 @@
           ]
         },
         {
-          "name": "mutation login \u2014 wrong password (401)",
+          "name": "mutation login — wrong password (401)",
           "request": {
             "method": "POST",
             "header": [

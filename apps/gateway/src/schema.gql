@@ -61,11 +61,28 @@ extend type Query {
   book(id: ID!): Book!
   recentBooks(limit: Int = 12): [Book!]!
   books(limit: Int = 24, cursor: String = ""): BookPage!
+  search(q: String!): SearchResult!
 }
 
 type BookPage {
   edges: [Book!]!
   next_cursor: String!
+}
+
+type SearchResult {
+  books: [SearchBook!]!
+}
+
+type SearchBook {
+  id: ID!
+  owner_id: ID!
+  owner: User!
+  title: String!
+  author: String!
+  year_published: Int!
+  cover_object_key: String!
+  status: String!
+  matched_by: [String!]!
 }
 
 type Book {

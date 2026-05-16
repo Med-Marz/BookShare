@@ -18,4 +18,7 @@ module.exports = {
   Book: {
     ...bookResolvers.Book,
   },
+  SearchBook: {
+    ...bookResolvers.SearchBook,
+  },
 };

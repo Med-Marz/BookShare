@@ -63,6 +63,47 @@ module.exports = {
         throw grpcErrorToGraphQL(err);
       }
     },
+    search: async (_parent, { q }) => {
+      const trimmed = (q || '').trim();
+      if (!trimmed) throw gqlError('VALIDATION_ERROR', 'query is required', 400);
+      try {
+        const [bookRes, userRes] = await Promise.all([
+          bookClient.searchBooks({ query: trimmed }),
+          userClient.lookupUsersByDisplayName({ query: trimmed }),
+        ]);
+        const directBooks = bookRes.books || [];
+        const matchedUsers = userRes.users || [];
+        let ownerBooks = [];
+        if (matchedUsers.length > 0) {
+          const lists = await Promise.all(
+            matchedUsers.map((u) =>
+              bookClient
+                .listBooksByOwner({ owner_id: u.id })
+                .then((r) => r.books || [])
+                .catch(() => []),
+            ),
+          );
+          ownerBooks = lists.flat();
+        }
+        const byId = new Map();
+        for (const b of directBooks) {
+          byId.set(b.id, { ...b, matched_by: new Set(['title_author']) });
+        }
+        for (const b of ownerBooks) {
+          const existing = byId.get(b.id);
+          if (existing) existing.matched_by.add('owner');
+          else byId.set(b.id, { ...b, matched_by: new Set(['owner']) });
+        }
+        const books = [...byId.values()].map((b) => ({
+          ...b,
+          matched_by: [...b.matched_by],
+        }));
+        return { books };
+      } catch (err) {
+        if (err.extensions) throw err;
+        throw grpcErrorToGraphQL(err);
+      }
+    },
   },
 
   User: {
@@ -105,6 +146,37 @@ module.exports = {
         return user;
       } catch {
         // user-service failures should not break book(id) — return a stub.
+        return {
+          id: parent.owner_id,
+          display_name: 'Unknown',
+          email: null,
+          phone: null,
+          address: null,
+          created_at: null,
+        };
+      }
+    },
+  },
+
+  SearchBook: {
+    // Distinct type from Book in the schema, so we mirror Book.owner here
+    // to preserve the anonymous contact-info gate.
+    owner: async (parent, _args, ctx) => {
+      if (!parent?.owner_id) return null;
+      try {
+        const { user } = await userClient.getUser({ user_id: parent.owner_id });
+        if (!ctx?.userId) {
+          return {
+            id: user.id,
+            display_name: user.display_name,
+            email: null,
+            phone: null,
+            address: null,
+            created_at: null,
+          };
+        }
+        return user;
+      } catch {
         return {
           id: parent.owner_id,
           display_name: 'Unknown',

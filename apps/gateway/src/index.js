@@ -77,6 +77,9 @@ async function start() {
   // Public Home endpoints (recently added books, etc.).
   app.use('/api/v1/home', require('./routes/home'));
 
+  // Public free-text catalog search.
+  app.use('/api/v1/search', require('./routes/search'));
+
   // ---- JWT gate: every /api/v1/* route mounted AFTER this line is protected.
   // The discovery banner + /api/v1/auth/* + /api/v1/users/* land above this
   // line and stay public.

@@ -9,7 +9,61 @@ package loan;
 // keepCase: true option).
 
 service LoanService {
-  // TODO: RPCs added in epic 4 (Reserve, CancelReservation, StartLoan,
-  // MarkReturned, ListMyReservations, ListReservationsOnMyBooks,
-  // CountMyActiveReservations, ...)
+  rpc Reserve (ReserveRequest) returns (ReserveResponse);
+  rpc CancelReservation (CancelReservationRequest) returns (CancelReservationResponse);
+  rpc StartLoan (StartLoanRequest) returns (StartLoanResponse);
+  rpc MarkReturned (MarkReturnedRequest) returns (MarkReturnedResponse);
+  rpc GetMyActiveReservationOnBook (GetMyActiveReservationOnBookRequest) returns (GetMyActiveReservationOnBookResponse);
+}
+
+message Reservation {
+  string id = 1;
+  string book_id = 2;
+  string owner_id = 3;
+  string borrower_id = 4;
+  string state = 5;             // Active | Cancelled | LoanStarted | Completed
+  string created_at = 6;
+  string loan_started_at = 7;   // empty when not yet started
+  string returned_at = 8;       // empty until MarkReturned succeeds
+  string cancelled_at = 9;      // empty unless cancelled
+}
+
+message ReserveRequest {
+  string book_id = 1;
+}
+
+message ReserveResponse {
+  Reservation reservation = 1;
+}
+
+message CancelReservationRequest {
+  string reservation_id = 1;
+}
+
+message CancelReservationResponse {
+  Reservation reservation = 1;
+}
+
+message StartLoanRequest {
+  string reservation_id = 1;
+}
+
+message StartLoanResponse {
+  Reservation reservation = 1;
+}
+
+message MarkReturnedRequest {
+  string reservation_id = 1;
+}
+
+message MarkReturnedResponse {
+  Reservation reservation = 1;
+}
+
+message GetMyActiveReservationOnBookRequest {
+  string book_id = 1;
+}
+
+message GetMyActiveReservationOnBookResponse {
+  Reservation reservation = 1;
 }

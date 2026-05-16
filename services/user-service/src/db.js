@@ -106,6 +106,18 @@ function insertUser({ id, email, password_hash, display_name, phone, address, cr
   });
 }
 
+// Case-insensitive substring lookup on display_name.
+function findUsersByDisplayName(query) {
+  return new Promise((resolve, reject) => {
+    const param = `%${query.toLowerCase()}%`;
+    db.all(
+      'SELECT id, display_name FROM users WHERE LOWER(display_name) LIKE ?',
+      [param],
+      (err, rows) => (err ? reject(err) : resolve(rows || [])),
+    );
+  });
+}
+
 function close() {
   return new Promise((resolve, reject) => {
     if (!db) return resolve();
@@ -113,4 +125,12 @@ function close() {
   });
 }
 
-module.exports = { init, getUserByEmail, getUserById, insertUser, updateUser, close };
+module.exports = {
+  init,
+  getUserByEmail,
+  getUserById,
+  insertUser,
+  updateUser,
+  findUsersByDisplayName,
+  close,
+};

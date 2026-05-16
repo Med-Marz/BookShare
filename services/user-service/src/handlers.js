@@ -161,6 +161,27 @@ function makeHandlers(logger) {
       }
     },
 
+    async LookupUsersByDisplayName(call, callback) {
+      const raw = (call.request?.query || '').trim();
+      if (!raw) {
+        return callback({
+          code: grpc.status.INVALID_ARGUMENT,
+          message: 'query is required',
+        });
+      }
+      try {
+        const rows = await db.findUsersByDisplayName(raw);
+        const users = rows.map((r) => ({ id: r.id, display_name: r.display_name }));
+        return callback(null, { users });
+      } catch (err) {
+        logger.error({ err, query: raw }, 'LookupUsersByDisplayName failed');
+        return callback({
+          code: grpc.status.INTERNAL,
+          message: 'failed to look up users',
+        });
+      }
+    },
+
     async AuthenticateUser(call, callback) {
       const parsed = loginSchema.safeParse({
         email: call.request.email,

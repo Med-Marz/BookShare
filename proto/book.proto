@@ -18,6 +18,7 @@ service BookService {
   rpc ListBooksByOwner (ListBooksByOwnerRequest) returns (ListBooksByOwnerResponse);
   rpc ListRecentBooks (ListRecentBooksRequest) returns (ListRecentBooksResponse);
   rpc ListBooks (ListBooksRequest) returns (ListBooksResponse);
+  rpc SearchBooks (SearchBooksRequest) returns (SearchBooksResponse);
 }
 
 message Book {
@@ -80,6 +81,15 @@ message ListBooksRequest {
 message ListBooksResponse {
   repeated Book books = 1;
   string        next_cursor = 2;   // empty → end of catalog
+}
+
+message SearchBooksRequest {
+  string query = 1;
+  int32  limit = 2;   // 0 → default 50; clamped 1..100
+}
+
+message SearchBooksResponse {
+  repeated Book books = 1;
 }
 
 message GetBookRequest {

@@ -1094,6 +1094,191 @@
       ]
     },
     {
+      "name": "Books \u2014 Browse",
+      "description": "GET /api/v1/books \u2014 paginated public catalog. Runs after Books \u2014 Add so the catalog is non-empty.",
+      "item": [
+        {
+          "name": "GET /api/v1/books \u2014 happy path (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "books"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('books is an array', () => pm.expect(body.books).to.be.an('array'));",
+                  "pm.test('next_cursor is a string', () => pm.expect(body.next_cursor).to.be.a('string'));",
+                  "if (body.books.length > 0) {",
+                  "  const b = body.books[0];",
+                  "  pm.test('first book has id', () => pm.expect(b.id).to.be.a('string'));",
+                  "  pm.test('first book has owner.display_name', () => pm.expect(b.owner.display_name).to.be.a('string'));",
+                  "  pm.test('first book has NO owner.email', () => pm.expect(b.owner.email).to.be.undefined);",
+                  "  pm.collectionVariables.set('browsePage1Ids', body.books.map(x => x.id).join(','));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/books?limit=2 \u2014 captures cursor (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books?limit=2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "books"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "2"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('books length is at most 2', () => pm.expect(body.books.length).to.be.at.most(2));",
+                  "if (body.books.length > 0 && body.next_cursor) {",
+                  "  pm.collectionVariables.set('browseCursor', body.next_cursor);",
+                  "  pm.collectionVariables.set('browseFirstPageIds', body.books.map(x => x.id).join(','));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/books?cursor=... \u2014 second page no duplicates (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/books?limit=2&cursor={{browseCursor}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "books"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "2"
+                },
+                {
+                  "key": "cursor",
+                  "value": "{{browseCursor}}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get('browseCursor')) { postman.setNextRequest(null); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('books is an array', () => pm.expect(body.books).to.be.an('array'));",
+                  "const firstPage = (pm.collectionVariables.get('browseFirstPageIds') || '').split(',');",
+                  "const secondPageIds = body.books.map(b => b.id);",
+                  "const overlap = secondPageIds.filter(id => firstPage.includes(id));",
+                  "pm.test('no duplicates across pages', () => pm.expect(overlap).to.have.lengthOf(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "query books(limit: 3) \u2014 anonymous (owner.email is null)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query{books(limit:3){edges{id title owner{display_name email}} next_cursor}}\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('no errors', () => pm.expect(body.errors).to.be.undefined);",
+                  "pm.test('edges is an array', () => pm.expect(body.data.books.edges).to.be.an('array'));",
+                  "pm.test('next_cursor is a string', () => pm.expect(body.data.books.next_cursor).to.be.a('string'));",
+                  "if (body.data.books.edges.length > 0) {",
+                  "  const e = body.data.books.edges[0];",
+                  "  pm.test('first edge has owner.display_name', () => pm.expect(e.owner.display_name).to.be.a('string'));",
+                  "  pm.test('first edge has null owner.email', () => pm.expect(e.owner.email).to.be.null);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Covers",
       "description": "Public GET /api/v1/covers/:object_key \u2014 proxies MinIO through the gateway. Depends on createdCoverKey captured by the Books \u2014 Add happy path.",
       "item": [

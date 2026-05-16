@@ -3,6 +3,7 @@ const { GraphQLError } = require('graphql');
 
 const bookClient = require('../clients/bookClient');
 const userClient = require('../clients/userClient');
+const loanClient = require('../clients/loanClient');
 const { makeMetadata } = require('../clients/grpcMetadata');
 
 const ALLOWED = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -126,10 +127,22 @@ module.exports = {
   },
 
   Book: {
-    // Placeholder until reservations come online. Story 4.x will set this
-    // to a real Reservation when the viewer has an active reservation on
-    // this book.
-    my_active_reservation: () => null,
+    // Returns the viewer's active reservation on this book (Active or
+    // LoanStarted). Anonymous viewers always get null — only an authenticated
+    // borrower has an "active reservation".
+    my_active_reservation: async (parent, _args, ctx) => {
+      if (!ctx?.userId || !parent?.id) return null;
+      try {
+        const { reservation } = await loanClient.getMyActiveReservationOnBook(
+          { book_id: parent.id },
+          makeMetadata(ctx.userId),
+        );
+        return reservation;
+      } catch (err) {
+        if (err?.code === grpc.status.NOT_FOUND) return null;
+        throw grpcErrorToGraphQL(err);
+      }
+    },
 
     // The flagship cross-service join — fans out to user-service for the
     // owner record. Anonymous viewers see contact fields nulled per the

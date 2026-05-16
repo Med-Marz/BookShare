@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useApolloClient } from '@apollo/client/react';
-import { BookOpen, LogOut, PlusCircle, Search, UserRound } from 'lucide-react';
+import { Bell, BookOpen, LogOut, PlusCircle, Search, UserRound } from 'lucide-react';
 import useAuth from '../auth/useAuth';
+import { getUnreadCount } from '../api/notificationsApi';
 
 function navLinkClasses({ isActive }) {
   return [
@@ -29,8 +30,30 @@ function Header() {
   const { token, currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const apollo = useApolloClient();
+  const location = useLocation();
   const isAuthenticated = Boolean(token);
   const [query, setQuery] = useState('');
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Refresh the badge on initial mount and on every route change. No live
+  // websocket — a cheap GET on every navigation is plenty for the demo.
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setUnreadCount(0);
+      return undefined;
+    }
+    let cancelled = false;
+    getUnreadCount()
+      .then((n) => {
+        if (!cancelled) setUnreadCount(Number.isFinite(n) ? n : 0);
+      })
+      .catch(() => {
+        if (!cancelled) setUnreadCount(0);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, location.pathname]);
 
   async function handleLogout() {
     logout();
@@ -100,6 +123,27 @@ function Header() {
               >
                 <PlusCircle className="h-4 w-4" aria-hidden="true" />
                 Add a book
+              </NavLink>
+              <NavLink
+                to="/notifications"
+                aria-label={
+                  unreadCount > 0
+                    ? `Notifications, ${unreadCount} unread`
+                    : 'Notifications'
+                }
+                className={({ isActive }) =>
+                  [
+                    'relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-paperDark bg-cream text-sepia no-underline shadow-shelf transition hover:border-sepiaSoft hover:text-bordeaux',
+                    isActive ? 'border-bordeaux text-bordeaux' : '',
+                  ].join(' ')
+                }
+              >
+                <Bell className="h-4 w-4" aria-hidden="true" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-bordeaux px-1 text-[10px] font-semibold leading-none text-ivory shadow-shelf">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
               </NavLink>
               <Link
                 to="/profile"

@@ -10,6 +10,7 @@ import MyProfilePage from './pages/MyProfilePage.jsx';
 import UserProfilePage from './pages/UserProfilePage.jsx';
 import AddBookPage from './pages/AddBookPage.jsx';
 import BookDetailPage from './pages/BookDetailPage.jsx';
+import BrowsePage from './pages/BrowsePage.jsx';
 
 function Placeholder({ title, copy }) {
   return (
@@ -52,15 +53,7 @@ function App() {
           }
         />
         <Route path="/users/:id" element={<UserProfilePage />} />
-        <Route
-          path="/books"
-          element={
-            <Placeholder
-              title="Browse books"
-              copy="The catalog is coming soon — readers will be able to discover every book listed on BookShare from this page."
-            />
-          }
-        />
+        <Route path="/books" element={<BrowsePage />} />
         <Route
           path="/search"
           element={

@@ -13,6 +13,18 @@ export async function listRecentBooks(limit = 12) {
   return res.data.books || [];
 }
 
+// GET /api/v1/books — public catalog with cursor pagination.
+// next_cursor is '' when the catalog end has been reached.
+export async function listBooks({ limit = 24, cursor = '' } = {}) {
+  const params = { limit };
+  if (cursor) params.cursor = cursor;
+  const res = await axios.get('/api/v1/books', { params });
+  return {
+    books: res.data.books || [],
+    next_cursor: res.data.next_cursor || '',
+  };
+}
+
 // GET /api/v1/books/:id — public book detail.
 export async function getBook(bookId) {
   const res = await axios.get(`/api/v1/books/${bookId}`);

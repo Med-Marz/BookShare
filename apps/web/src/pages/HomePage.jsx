@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
   BookmarkPlus,
   BookOpenCheck,
+  ChevronLeft,
+  ChevronRight,
   Handshake,
   Library,
   Sparkles,
@@ -19,6 +21,7 @@ function HomePage() {
 
   const [recent, setRecent] = useState([]);
   const [recentLoading, setRecentLoading] = useState(true);
+  const trackRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -36,6 +39,15 @@ function HomePage() {
       cancelled = true;
     };
   }, []);
+
+  function scrollCarousel(direction) {
+    const track = trackRef.current;
+    if (!track) return;
+    // Scroll by one card width — the first card defines it.
+    const firstCard = track.firstElementChild;
+    const step = firstCard ? firstCard.offsetWidth + 20 : 280;
+    track.scrollBy({ left: direction * step, behavior: 'smooth' });
+  }
 
   return (
     <main className="animate-fade-up">
@@ -131,10 +143,34 @@ function HomePage() {
         {recentLoading ? (
           <p className="mt-6 text-sepiaSoft">Loading recent books…</p>
         ) : recent.length > 0 ? (
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {recent.map((b) => (
-              <BookCard key={b.id} book={b} owner={b.owner} showStatus />
-            ))}
+          <div className="group relative mt-6">
+            <button
+              type="button"
+              onClick={() => scrollCarousel(-1)}
+              aria-label="Scroll left"
+              className="absolute left-0 top-1/2 z-10 hidden -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-paperDark bg-cream/95 p-2 text-sepia shadow-card backdrop-blur-sm transition hover:border-sepiaSoft hover:text-bordeaux sm:inline-flex"
+            >
+              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollCarousel(1)}
+              aria-label="Scroll right"
+              className="absolute right-0 top-1/2 z-10 hidden translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-paperDark bg-cream/95 p-2 text-sepia shadow-card backdrop-blur-sm transition hover:border-sepiaSoft hover:text-bordeaux sm:inline-flex"
+            >
+              <ChevronRight className="h-5 w-5" aria-hidden="true" />
+            </button>
+            <div
+              ref={trackRef}
+              className="flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-smooth pb-2"
+              style={{ scrollbarWidth: 'thin' }}
+            >
+              {recent.map((b) => (
+                <div key={b.id} className="w-64 shrink-0 snap-start">
+                  <BookCard book={b} owner={b.owner} showStatus />
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
           <div className="mt-6 rounded-2xl border border-dashed border-paperDark bg-ivory/70 p-8 text-center">

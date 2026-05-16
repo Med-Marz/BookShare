@@ -30,6 +30,11 @@ service UserService {
   // Empty-string scalars are treated as "leave unchanged" — at least one of
   // display_name, phone, address must be non-empty (INVALID_ARGUMENT otherwise).
   rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+
+  // Case-insensitive substring lookup on display_name. Story 3.3.
+  // Returns a lightweight UserLite for each match. Used by the gateway's
+  // /api/v1/search route to match books by their owner's display name.
+  rpc LookupUsersByDisplayName(LookupUsersByDisplayNameRequest) returns (LookupUsersByDisplayNameResponse);
 }
 
 message User {
@@ -81,4 +86,17 @@ message UpdateUserRequest {
 
 message UpdateUserResponse {
   User user = 1;
+}
+
+message UserLite {
+  string id = 1;
+  string display_name = 2;
+}
+
+message LookupUsersByDisplayNameRequest {
+  string query = 1;
+}
+
+message LookupUsersByDisplayNameResponse {
+  repeated UserLite users = 1;
 }

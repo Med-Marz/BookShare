@@ -17,6 +17,7 @@ service BookService {
   rpc GetCoverBytes (GetCoverBytesRequest) returns (GetCoverBytesResponse);
   rpc ListBooksByOwner (ListBooksByOwnerRequest) returns (ListBooksByOwnerResponse);
   rpc ListRecentBooks (ListRecentBooksRequest) returns (ListRecentBooksResponse);
+  rpc ListBooks (ListBooksRequest) returns (ListBooksResponse);
 }
 
 message Book {
@@ -69,6 +70,16 @@ message ListRecentBooksRequest {
 
 message ListRecentBooksResponse {
   repeated Book books = 1;
+}
+
+message ListBooksRequest {
+  int32  limit = 1;    // 0 → server default (24); clamped to 1..100
+  string cursor = 2;   // empty → first page
+}
+
+message ListBooksResponse {
+  repeated Book books = 1;
+  string        next_cursor = 2;   // empty → end of catalog
 }
 
 message GetBookRequest {

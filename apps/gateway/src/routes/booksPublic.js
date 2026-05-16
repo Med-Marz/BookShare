@@ -1,6 +1,9 @@
 const express = require('express');
+const grpc = require('@grpc/grpc-js');
 const bookClient = require('../clients/bookClient');
 const userClient = require('../clients/userClient');
+const loanClient = require('../clients/loanClient');
+const { makeMetadata } = require('../clients/grpcMetadata');
 
 const router = express.Router();
 
@@ -45,10 +48,29 @@ router.get('/', async (req, res, next) => {
 
 // GET /api/v1/books/:id — public book detail.
 // No JWT required so anonymous viewers can render the detail page.
+// If a valid token IS present (via optionalAuth populating req.userId), the
+// response also carries the viewer's active reservation on this book — used
+// by the React Reserve/Cancel UI to pick the right action.
 router.get('/:id', async (req, res, next) => {
   try {
-    const { book } = await bookClient.getBook({ book_id: req.params.id });
-    res.json({ book });
+    const [bookRes, reservationRes] = await Promise.all([
+      bookClient.getBook({ book_id: req.params.id }),
+      req.userId
+        ? loanClient
+            .getMyActiveReservationOnBook(
+              { book_id: req.params.id },
+              makeMetadata(req.userId),
+            )
+            .then((r) => r.reservation)
+            .catch((err) => {
+              if (err?.code === grpc.status.NOT_FOUND) return null;
+              throw err;
+            })
+        : Promise.resolve(null),
+    ]);
+    res.json({
+      book: { ...bookRes.book, my_active_reservation: reservationRes || null },
+    });
   } catch (err) {
     next(err);
   }

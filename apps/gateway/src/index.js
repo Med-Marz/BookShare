@@ -72,7 +72,9 @@ async function start() {
   // Public book detail (GET /api/v1/books/:id). Other /books verbs (POST, PUT)
   // are authenticated and mounted further down on the same prefix — Express
   // tries routers in registration order, so the public GET hits first.
-  app.use('/api/v1/books', require('./routes/booksPublic'));
+  // optionalAuth populates req.userId if a valid JWT is present so the route
+  // can include the viewer's active reservation in the response.
+  app.use('/api/v1/books', optionalAuth, require('./routes/booksPublic'));
 
   // Public Home endpoints (recently added books, etc.).
   app.use('/api/v1/home', require('./routes/home'));

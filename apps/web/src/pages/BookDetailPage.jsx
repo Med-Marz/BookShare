@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { coverUrl } from '../api/covers';
 import { deleteBook, editBook, getBook, replaceCover } from '../api/booksApi';
+import { cancelReservation, reserveBook } from '../api/reservationsApi';
 import { formatYear } from '../utils/formatYear';
 import useAuth from '../auth/useAuth';
 
@@ -52,6 +53,65 @@ function BookDetailPage() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
+
+  const [reserving, setReserving] = useState(false);
+  const [reserveError, setReserveError] = useState(null);
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+
+  async function refetchBook() {
+    try {
+      const fresh = await getBook(id);
+      setBook(fresh);
+    } catch {
+      // swallow; existing UI state stays as a fallback
+    }
+  }
+
+  async function handleReserve() {
+    if (!book) return;
+    setReserving(true);
+    setReserveError(null);
+    try {
+      await reserveBook(book.id);
+      // Kafka propagation may take a moment; refetch to pull the new status
+      // + my_active_reservation from the server.
+      await refetchBook();
+      setSaved(true);
+    } catch (err) {
+      const status = err?.response?.status;
+      const code = err?.response?.data?.error?.code;
+      let message;
+      if (status === 409 && code === 'FAILED_PRECONDITION') {
+        message = 'This book is no longer available.';
+        await refetchBook();
+      } else {
+        message =
+          err?.response?.data?.error?.message || 'Could not place the reservation.';
+      }
+      setReserveError(message);
+    } finally {
+      setReserving(false);
+    }
+  }
+
+  async function handleCancelReservation() {
+    if (!book?.my_active_reservation) return;
+    setCancelling(true);
+    setReserveError(null);
+    try {
+      await cancelReservation(book.my_active_reservation.id);
+      await refetchBook();
+      setConfirmingCancel(false);
+      setSaved(true);
+    } catch (err) {
+      const message =
+        err?.response?.data?.error?.message || 'Could not cancel the reservation.';
+      setReserveError(message);
+    } finally {
+      setCancelling(false);
+    }
+  }
 
   async function handleDelete() {
     if (!book) return;
@@ -439,29 +499,94 @@ function BookDetailPage() {
             </div>
           )}
 
-          {/* Reserve CTA — visible to non-owners only when status is Available */}
-          {!isOwner && book.status === 'Available' && !editing && (
+          {/* Reserve / Cancel CTA — only for non-owners, not in edit mode. */}
+          {!isOwner && !editing && (
             <div className="mt-6">
-              {isAuthenticated ? (
+              {/* Authenticated borrower already holds an active reservation */}
+              {isAuthenticated && book.my_active_reservation && (
+                <div className="space-y-3">
+                  {book.my_active_reservation.state === 'Active' && (
+                    <>
+                      <p className="inline-flex items-center gap-2 rounded-md border border-bordeaux/30 bg-bordeaux/10 px-3 py-2 text-sm text-bordeaux">
+                        <Bookmark className="h-4 w-4" aria-hidden="true" />
+                        You&apos;ve reserved this book. The owner&apos;s contact info is below.
+                      </p>
+                      {!confirmingCancel ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setConfirmingCancel(true);
+                            setReserveError(null);
+                          }}
+                          className="btn-ghost"
+                        >
+                          <X className="h-4 w-4" aria-hidden="true" />
+                          Cancel reservation
+                        </button>
+                      ) : (
+                        <div className="card-surface space-y-3 border-bordeaux/30 p-4">
+                          <p className="text-sm text-sepiaDark">
+                            Cancel this reservation? The book becomes available to other readers.
+                          </p>
+                          <div className="flex flex-wrap items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={handleCancelReservation}
+                              disabled={cancelling}
+                              className="btn-primary"
+                            >
+                              {cancelling ? 'Cancelling…' : 'Confirm cancel'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setConfirmingCancel(false)}
+                              className="inline-flex items-center gap-1.5 text-sm text-sepiaSoft hover:text-bordeaux"
+                            >
+                              <X className="h-4 w-4" aria-hidden="true" />
+                              Keep reservation
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {book.my_active_reservation.state === 'LoanStarted' && (
+                    <p className="inline-flex items-center gap-2 rounded-md border border-sepiaSoft/30 bg-sepiaSoft/10 px-3 py-2 text-sm text-sepiaSoft">
+                      <Bookmark className="h-4 w-4" aria-hidden="true" />
+                      You&apos;re currently borrowing this book.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Authenticated non-borrower, book is Available → Reserve */}
+              {isAuthenticated && !book.my_active_reservation && book.status === 'Available' && (
                 <button
                   type="button"
-                  disabled
-                  aria-disabled="true"
-                  title="Reservations come online with the loan lifecycle."
+                  onClick={handleReserve}
+                  disabled={reserving}
                   className="btn-primary"
                 >
                   <Bookmark className="h-4 w-4" aria-hidden="true" />
-                  Reserve this book
+                  {reserving ? 'Placing reservation…' : 'Reserve this book'}
                 </button>
-              ) : (
-                <Link
-                  to="/login"
-                  state={{ from: location }}
-                  className="btn-primary no-underline"
-                >
+              )}
+
+              {/* Anonymous viewer, book is Available → Sign-in CTA */}
+              {!isAuthenticated && book.status === 'Available' && (
+                <Link to="/login" state={{ from: location }} className="btn-primary no-underline">
                   <LogIn className="h-4 w-4" aria-hidden="true" />
                   Sign in to reserve this book
                 </Link>
+              )}
+
+              {reserveError && (
+                <p
+                  role="alert"
+                  className="mt-3 rounded-md border border-bordeaux/30 bg-bordeaux/10 px-3 py-2 text-sm text-bordeaux"
+                >
+                  {reserveError}
+                </p>
               )}
             </div>
           )}

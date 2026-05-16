@@ -13,6 +13,7 @@ import {
 import BookStack from '../components/BookStack.jsx';
 import BookCard from '../components/BookCard.jsx';
 import { listRecentBooks } from '../api/booksApi';
+import { getMyActivity } from '../api/reservationsApi';
 import useAuth from '../auth/useAuth';
 
 function HomePage() {
@@ -21,6 +22,7 @@ function HomePage() {
 
   const [recent, setRecent] = useState([]);
   const [recentLoading, setRecentLoading] = useState(true);
+  const [activity, setActivity] = useState(null);
   const trackRef = useRef(null);
 
   useEffect(() => {
@@ -39,6 +41,25 @@ function HomePage() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setActivity(null);
+      return undefined;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await getMyActivity();
+        if (!cancelled) setActivity(data);
+      } catch {
+        if (!cancelled) setActivity(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated]);
 
   function scrollCarousel(direction) {
     const track = trackRef.current;
@@ -105,20 +126,63 @@ function HomePage() {
       </section>
 
       {/* ─────────── ACTIVITY PANEL (authenticated only) ─────────── */}
-      {isAuthenticated && (
+      {isAuthenticated && activity && (
         <section className="mx-auto max-w-6xl px-6 pt-12">
-          <div className="card-surface flex items-start gap-4 p-6">
-            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-paper text-bordeaux">
-              <BookOpenCheck className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <div>
-              <h2 className="font-display text-xl text-sepiaDark">Your activity</h2>
-              <p className="mt-1 text-sm text-sepiaSoft">
-                Your active reservations and your listed-book counts will live here once
-                reservations come online.
-              </p>
+          {activity.activeReservationCount === 0 && activity.listedBookCount === 0 ? (
+            <div className="card-surface flex items-start gap-4 p-6">
+              <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-paper text-bordeaux">
+                <BookOpenCheck className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <div>
+                <h2 className="font-display text-xl text-sepiaDark">Welcome</h2>
+                <p className="mt-1 text-sm text-sepiaSoft">
+                  You haven't reserved or listed any books yet — try browsing the catalog or
+                  add your first book.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-3">
+                  <Link to="/books" className="btn-ghost no-underline">
+                    Browse books
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Link>
+                  <Link to="/books/new" className="btn-primary no-underline">
+                    <BookmarkPlus className="h-4 w-4" aria-hidden="true" />
+                    Add a book
+                  </Link>
+                </div>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Link
+                to="/reservations"
+                className="card-surface flex items-center gap-4 p-6 no-underline transition hover:-translate-y-0.5 hover:shadow-shelfLg"
+              >
+                <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-paper text-bordeaux">
+                  <BookOpenCheck className="h-6 w-6" aria-hidden="true" />
+                </span>
+                <div>
+                  <p className="font-display text-3xl text-bordeauxDeep">
+                    {activity.activeReservationCount}
+                  </p>
+                  <p className="text-sm text-sepiaSoft">Active reservations</p>
+                </div>
+              </Link>
+              <Link
+                to="/profile"
+                className="card-surface flex items-center gap-4 p-6 no-underline transition hover:-translate-y-0.5 hover:shadow-shelfLg"
+              >
+                <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-paper text-bordeaux">
+                  <Library className="h-6 w-6" aria-hidden="true" />
+                </span>
+                <div>
+                  <p className="font-display text-3xl text-bordeauxDeep">
+                    {activity.listedBookCount}
+                  </p>
+                  <p className="text-sm text-sepiaSoft">Books you've listed</p>
+                </div>
+              </Link>
+            </div>
+          )}
         </section>
       )}
 

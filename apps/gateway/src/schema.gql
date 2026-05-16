@@ -104,7 +104,21 @@ type Book {
 
 type Reservation {
   id: ID!
+  book_id: ID!
+  owner_id: ID!
+  borrower_id: ID!
   state: String!
+  created_at: String!
+  loan_started_at: String
+  returned_at: String
+  cancelled_at: String
+}
+
+extend type Mutation {
+  reserveBook(book_id: ID!): Reservation!
+  cancelReservation(id: ID!): Reservation!
+  startLoan(id: ID!): Reservation!
+  markReturned(id: ID!): Reservation!
 }
 
 input AddBookInput {

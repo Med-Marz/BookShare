@@ -1,5 +1,6 @@
 const userResolvers = require('./userResolvers');
 const bookResolvers = require('./bookResolvers');
+const reservationResolvers = require('./reservationResolvers');
 
 // Combined resolver map for Apollo Server. Each domain owns its own file.
 module.exports = {
@@ -11,6 +12,7 @@ module.exports = {
   Mutation: {
     ...userResolvers.Mutation,
     ...bookResolvers.Mutation,
+    ...reservationResolvers.Mutation,
   },
   User: {
     ...bookResolvers.User,

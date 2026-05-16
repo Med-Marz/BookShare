@@ -14,6 +14,9 @@ service LoanService {
   rpc StartLoan (StartLoanRequest) returns (StartLoanResponse);
   rpc MarkReturned (MarkReturnedRequest) returns (MarkReturnedResponse);
   rpc GetMyActiveReservationOnBook (GetMyActiveReservationOnBookRequest) returns (GetMyActiveReservationOnBookResponse);
+  rpc ListMyReservations (ListMyReservationsRequest) returns (ListReservationsResponse);
+  rpc ListReservationsOnMyBooks (ListReservationsOnMyBooksRequest) returns (ListReservationsResponse);
+  rpc CountMyActiveReservations (CountMyActiveReservationsRequest) returns (CountResponse);
 }
 
 message Reservation {
@@ -66,4 +69,20 @@ message GetMyActiveReservationOnBookRequest {
 
 message GetMyActiveReservationOnBookResponse {
   Reservation reservation = 1;
+}
+
+// List-reservation RPCs share a response shape: a single repeated field.
+// Borrower-side (ListMyReservations) returns rows where borrower_id matches
+// the caller; owner-side (ListReservationsOnMyBooks) where owner_id matches.
+message ListMyReservationsRequest {}
+message ListReservationsOnMyBooksRequest {}
+
+message ListReservationsResponse {
+  repeated Reservation reservations = 1;
+}
+
+message CountMyActiveReservationsRequest {}
+
+message CountResponse {
+  int32 count = 1;
 }

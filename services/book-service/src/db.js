@@ -19,7 +19,7 @@ const bookSchema = {
     owner_id: { type: 'string', maxLength: 64 },
     title: { type: 'string', maxLength: 300 },
     author: { type: 'string', maxLength: 200 },
-    year_published: { type: 'integer', minimum: 1000, maximum: 9999 },
+    year_published: { type: 'integer', minimum: -3000, maximum: 9999 },
     cover_object_key: { type: 'string', maxLength: 300 },
     status: { type: 'string', enum: ['Available', 'Reserved', 'Lent Out'] },
     created_at: { type: 'string' },

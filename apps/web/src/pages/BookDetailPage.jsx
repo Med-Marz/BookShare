@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { coverUrl } from '../api/covers';
 import { deleteBook, editBook, getBook, replaceCover } from '../api/booksApi';
+import { formatYear } from '../utils/formatYear';
 import useAuth from '../auth/useAuth';
 
 const ALLOWED_COVER_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -302,7 +303,7 @@ function BookDetailPage() {
             <div>
               <h1 className="font-display text-4xl text-sepiaDark md:text-5xl">{book.title}</h1>
               <p className="mt-2 text-lg text-sepiaSoft">
-                {book.author} · {book.year_published}
+                {book.author} · {formatYear(book.year_published)}
               </p>
             </div>
             <span

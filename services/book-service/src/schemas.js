@@ -4,6 +4,11 @@ const currentYear = new Date().getFullYear();
 
 const ALLOWED_CONTENT_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
+// Year bound spans ancient texts (negatives = BCE) up to next calendar year.
+// e.g. The Art of War ≈ -500, the Iliad ≈ -700.
+const MIN_YEAR = -3000;
+const MAX_YEAR = currentYear + 1;
+
 const addBookSchema = z.object({
   owner_id: z.string().uuid({ message: 'must be a uuid' }),
   title: z.string().trim().min(1, 'cannot be empty').max(300),
@@ -11,8 +16,8 @@ const addBookSchema = z.object({
   year_published: z
     .number()
     .int()
-    .gte(1000, 'must be >= 1000')
-    .lte(currentYear + 1, `must be <= ${currentYear + 1}`),
+    .gte(MIN_YEAR, `must be >= ${MIN_YEAR}`)
+    .lte(MAX_YEAR, `must be <= ${MAX_YEAR}`),
 });
 
 const editBookSchema = z
@@ -22,8 +27,8 @@ const editBookSchema = z
     year_published: z
       .number()
       .int()
-      .gte(1000, 'must be >= 1000')
-      .lte(currentYear + 1, `must be <= ${currentYear + 1}`)
+      .gte(MIN_YEAR, `must be >= ${MIN_YEAR}`)
+      .lte(MAX_YEAR, `must be <= ${MAX_YEAR}`)
       .optional(),
   })
   .refine((d) => Object.keys(d).length > 0, {

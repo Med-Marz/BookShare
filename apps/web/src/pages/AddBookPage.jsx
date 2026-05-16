@@ -156,10 +156,11 @@ function AddBookPage() {
               label="Year published"
               name="year_published"
               type="number"
-              min="1000"
+              min="-3000"
               max="9999"
               value={form.year_published}
               onChange={handleChange}
+              help="Use a negative number for BCE — e.g. -500 for 500 BCE (The Art of War)."
               required
             />
           </div>
@@ -182,11 +183,12 @@ function AddBookPage() {
   );
 }
 
-function Field({ label, name, type = 'text', ...inputProps }) {
+function Field({ label, name, type = 'text', help, ...inputProps }) {
   return (
     <label className="block">
       <span className="mb-1.5 block text-sm font-medium text-sepia">{label}</span>
       <input name={name} type={type} className="input-field" {...inputProps} />
+      {help && <span className="mt-1 block text-xs text-sepiaSoft">{help}</span>}
     </label>
   );
 }

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { coverUrl } from '../api/covers';
+import { formatYear } from '../utils/formatYear';
 
 const STATUS_STYLES = {
   Available: 'border-forest/30 bg-forest/10 text-forest',
@@ -25,7 +26,7 @@ function BookCard({ book, showStatus = true, owner = null }) {
             {book.title}
           </h3>
           <p className="text-sm text-sepiaSoft">
-            {book.author} · {book.year_published}
+            {book.author} · {formatYear(book.year_published)}
           </p>
           {owner && (
             <p className="text-xs text-sepiaSoft">

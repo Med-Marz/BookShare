@@ -371,6 +371,38 @@ function makeHandlers(logger) {
       }
     },
 
+    async ListBooks(call, callback) {
+      const rawLimit = call.request?.limit ?? 0;
+      const limit = Math.min(Math.max(rawLimit || 24, 1), 100);
+      const cursor = call.request?.cursor || '';
+      try {
+        const docs = await db.collection.find().exec();
+        const sorted = docs
+          .map((d) => d.toMutableJSON())
+          .sort((a, b) => b.created_at.localeCompare(a.created_at));
+
+        let startIdx = 0;
+        if (cursor) {
+          const idx = sorted.findIndex((b) => b.id === cursor);
+          startIdx = idx >= 0 ? idx + 1 : 0;
+        }
+
+        const page = sorted.slice(startIdx, startIdx + limit);
+        const next_cursor =
+          startIdx + limit < sorted.length && page.length > 0
+            ? page[page.length - 1].id
+            : '';
+
+        return callback(null, { books: page, next_cursor });
+      } catch (err) {
+        logger.error({ err }, 'ListBooks failed');
+        return callback({
+          code: grpc.status.INTERNAL,
+          message: 'failed to list books',
+        });
+      }
+    },
+
     async ListBooksByOwner(call, callback) {
       const ownerId = call.request?.owner_id;
       if (!ownerId) {

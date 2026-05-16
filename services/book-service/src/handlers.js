@@ -352,6 +352,37 @@ function makeHandlers(logger) {
       }
     },
 
+    async SearchBooks(call, callback) {
+      const raw = (call.request?.query || '').trim();
+      if (!raw) {
+        return callback({
+          code: grpc.status.INVALID_ARGUMENT,
+          message: 'query is required',
+        });
+      }
+      const rawLimit = call.request?.limit ?? 0;
+      const limit = Math.min(Math.max(rawLimit || 50, 1), 100);
+      const tokens = raw.toLowerCase().split(/\s+/).filter(Boolean);
+      try {
+        const docs = await db.collection.find().exec();
+        const matches = docs
+          .map((d) => d.toMutableJSON())
+          .filter((b) => {
+            const haystack = `${b.title} ${b.author}`.toLowerCase();
+            return tokens.every((t) => haystack.includes(t));
+          })
+          .sort((a, b) => b.created_at.localeCompare(a.created_at))
+          .slice(0, limit);
+        return callback(null, { books: matches });
+      } catch (err) {
+        logger.error({ err, query: raw }, 'SearchBooks failed');
+        return callback({
+          code: grpc.status.INTERNAL,
+          message: 'failed to search books',
+        });
+      }
+    },
+
     async ListRecentBooks(call, callback) {
       const raw = call.request?.limit ?? 0;
       const limit = Math.min(Math.max(raw || 12, 1), 50);

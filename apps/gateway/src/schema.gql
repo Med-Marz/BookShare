@@ -155,3 +155,25 @@ input EditBookInput {
   author: String
   year_published: Int
 }
+
+extend type Query {
+  notifications(limit: Int = 20, since: String): [Notification!]!
+  unreadNotificationCount: Int!
+}
+
+extend type Mutation {
+  markNotificationRead(id: ID!): Notification!
+  markAllNotificationsRead: Int!
+}
+
+type Notification {
+  id: ID!
+  topic: String!
+  actor_id: ID!
+  book_id: ID!
+  reservation_id: ID!
+  message: String!
+  occurred_at: String!
+  created_at: String!
+  read_at: String
+}

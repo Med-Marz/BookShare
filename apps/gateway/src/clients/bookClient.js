@@ -48,4 +48,5 @@ module.exports = {
   listBooksByOwner: unary('ListBooksByOwner'),
   listRecentBooks: unary('ListRecentBooks'),
   listBooks: unary('ListBooks'),
+  searchBooks: unary('SearchBooks'),
 };

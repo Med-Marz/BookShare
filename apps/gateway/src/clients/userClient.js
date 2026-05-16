@@ -41,4 +41,5 @@ module.exports = {
   authenticateUser: unary('AuthenticateUser'),
   getUser: unary('GetUser'),
   updateUser: unary('UpdateUser'),
+  lookupUsersByDisplayName: unary('LookupUsersByDisplayName'),
 };

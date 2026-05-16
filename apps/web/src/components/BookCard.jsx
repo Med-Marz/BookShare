@@ -8,8 +8,18 @@ const STATUS_STYLES = {
   'Lent Out': 'border-sepiaSoft/30 bg-sepiaSoft/10 text-sepiaSoft',
 };
 
-function BookCard({ book, showStatus = true, owner = null }) {
+function matchedByLabel(arr) {
+  if (!arr || arr.length === 0) return null;
+  const hasTitle = arr.includes('title_author');
+  const hasOwner = arr.includes('owner');
+  if (hasTitle && hasOwner) return 'Matched by title and owner';
+  if (hasOwner) return 'Matched by owner name';
+  return 'Matched by title / author';
+}
+
+function BookCard({ book, showStatus = true, owner = null, matchedBy = null }) {
   const statusClass = STATUS_STYLES[book.status] || STATUS_STYLES.Available;
+  const matchedLabel = matchedByLabel(matchedBy);
   return (
     <Link to={`/books/${book.id}`} className="block no-underline">
       <article className="card-surface flex h-full flex-col overflow-hidden transition hover:-translate-y-0.5 hover:shadow-shelfLg">
@@ -32,6 +42,9 @@ function BookCard({ book, showStatus = true, owner = null }) {
             <p className="text-xs text-sepiaSoft">
               Shared by <span className="text-sepia">{owner.display_name}</span>
             </p>
+          )}
+          {matchedLabel && (
+            <p className="text-xs italic text-sepiaSoft/90">{matchedLabel}</p>
           )}
           {showStatus && (
             <span

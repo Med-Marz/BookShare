@@ -13,6 +13,13 @@ export async function listRecentBooks(limit = 12) {
   return res.data.books || [];
 }
 
+// GET /api/v1/search?q=... — public free-text search.
+// Returns books enriched with owner.display_name and a matched_by array.
+export async function searchBooks(query) {
+  const res = await axios.get('/api/v1/search', { params: { q: query } });
+  return res.data.books || [];
+}
+
 // GET /api/v1/books — public catalog with cursor pagination.
 // next_cursor is '' when the catalog end has been reached.
 export async function listBooks({ limit = 24, cursor = '' } = {}) {

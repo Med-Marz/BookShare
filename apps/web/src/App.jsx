@@ -11,6 +11,7 @@ import UserProfilePage from './pages/UserProfilePage.jsx';
 import AddBookPage from './pages/AddBookPage.jsx';
 import BookDetailPage from './pages/BookDetailPage.jsx';
 import BrowsePage from './pages/BrowsePage.jsx';
+import SearchPage from './pages/SearchPage.jsx';
 
 function Placeholder({ title, copy }) {
   return (
@@ -54,15 +55,7 @@ function App() {
         />
         <Route path="/users/:id" element={<UserProfilePage />} />
         <Route path="/books" element={<BrowsePage />} />
-        <Route
-          path="/search"
-          element={
-            <Placeholder
-              title="Search"
-              copy="The search results page lands in the next story. Your query is preserved in the URL."
-            />
-          }
-        />
+        <Route path="/search" element={<SearchPage />} />
         <Route
           path="/books/new"
           element={

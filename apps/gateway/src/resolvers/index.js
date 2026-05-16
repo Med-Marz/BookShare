@@ -8,6 +8,7 @@ module.exports = {
     _empty: () => null,
     ...userResolvers.Query,
     ...bookResolvers.Query,
+    ...reservationResolvers.Query,
   },
   Mutation: {
     ...userResolvers.Mutation,
@@ -22,5 +23,11 @@ module.exports = {
   },
   SearchBook: {
     ...bookResolvers.SearchBook,
+  },
+  Reservation: {
+    ...reservationResolvers.Reservation,
+  },
+  Me: {
+    ...userResolvers.Me,
   },
 };

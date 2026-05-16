@@ -2,6 +2,8 @@ const grpc = require('@grpc/grpc-js');
 const { GraphQLError } = require('graphql');
 
 const userClient = require('../clients/userClient');
+const bookClient = require('../clients/bookClient');
+const loanClient = require('../clients/loanClient');
 const { makeMetadata } = require('../clients/grpcMetadata');
 const { runSignup } = require('../auth/signupFlow');
 const { runLogin } = require('../auth/loginFlow');
@@ -59,6 +61,10 @@ module.exports = {
       }
     },
 
+    // `me` is a root field shaped as the Me type — the resolver just hands
+    // back an empty object and Me's field resolvers do the actual work.
+    me: () => ({}),
+
     user: async (_parent, { id }, ctx) => {
       try {
         const { user } = await userClient.getUser({ user_id: id });
@@ -74,6 +80,24 @@ module.exports = {
           };
         }
         return user;
+      } catch (err) {
+        throw grpcErrorToGraphQL(err);
+      }
+    },
+  },
+
+  Me: {
+    activity: async (_parent, _args, ctx) => {
+      if (!ctx?.userId) throw unauthenticated();
+      try {
+        const [countRes, booksRes] = await Promise.all([
+          loanClient.countMyActiveReservations({}, makeMetadata(ctx.userId)),
+          bookClient.listBooksByOwner({ owner_id: ctx.userId }),
+        ]);
+        return {
+          active_reservation_count: countRes.count || 0,
+          listed_book_count: booksRes.books?.length || 0,
+        };
       } catch (err) {
         throw grpcErrorToGraphQL(err);
       }

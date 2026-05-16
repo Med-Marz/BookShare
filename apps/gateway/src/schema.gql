@@ -121,6 +121,27 @@ extend type Mutation {
   markReturned(id: ID!): Reservation!
 }
 
+extend type Query {
+  myReservations: [Reservation!]!
+  ownedReservations: [Reservation!]!
+  me: Me!
+}
+
+type Me {
+  activity: Activity!
+}
+
+type Activity {
+  active_reservation_count: Int!
+  listed_book_count: Int!
+}
+
+extend type Reservation {
+  book: Book
+  owner: User
+  borrower: User
+}
+
 input AddBookInput {
   title: String!
   author: String!

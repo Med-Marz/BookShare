@@ -3,6 +3,7 @@ const multer = require('multer');
 const grpc = require('@grpc/grpc-js');
 
 const bookClient = require('../clients/bookClient');
+const loanClient = require('../clients/loanClient');
 const { makeMetadata } = require('../clients/grpcMetadata');
 const { addBookBodySchema, editBookBodySchema } = require('../schemas/bookSchemas');
 
@@ -145,6 +146,25 @@ router.delete('/:id', async (req, res, next) => {
       req.log.info({ event: 'book.delete', book_id: req.params.id }, 'book deleted');
     }
     res.status(204).end();
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/v1/books/:id/reservations — authenticated borrower reserves.
+router.post('/:id/reservations', express.json(), async (req, res, next) => {
+  try {
+    const { reservation } = await loanClient.reserve(
+      { book_id: req.params.id },
+      makeMetadata(req.userId),
+    );
+    if (req.log) {
+      req.log.info(
+        { event: 'reservation.create', reservation_id: reservation.id, book_id: req.params.id },
+        'reservation created',
+      );
+    }
+    res.status(201).json({ reservation });
   } catch (err) {
     next(err);
   }

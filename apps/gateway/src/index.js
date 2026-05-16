@@ -88,6 +88,7 @@ async function start() {
   // ---- PROTECTED routes (require valid JWT). Mounted after requireAuth.
   app.use('/api/v1/profile', require('./routes/profile'));
   app.use('/api/v1/books', require('./routes/books'));
+  app.use('/api/v1/reservations', require('./routes/reservations'));
 
   // ---- GraphQL — Apollo Server must start before mounting middleware.
   // The context extracts the JWT's sub claim (or null) so resolvers can gate

@@ -90,6 +90,7 @@ async function start() {
   // ---- PROTECTED routes (require valid JWT). Mounted after requireAuth.
   app.use('/api/v1/profile', require('./routes/profile'));
   app.use('/api/v1/me', require('./routes/me'));
+  app.use('/api/v1/notifications', require('./routes/notifications'));
   app.use('/api/v1/books', require('./routes/books'));
   app.use('/api/v1/reservations', require('./routes/reservations'));
 

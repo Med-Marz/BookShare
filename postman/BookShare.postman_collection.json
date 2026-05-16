@@ -1279,6 +1279,216 @@
       ]
     },
     {
+      "name": "Search",
+      "description": "GET /api/v1/search?q=... (public) \u2014 title/author + owner-name search. Includes the Book.my_active_reservation null stub.",
+      "item": [
+        {
+          "name": "GET /api/v1/search?q=art \u2014 title match (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/search?q=art",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "art"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('books is an array', () => pm.expect(body.books).to.be.an('array'));",
+                  "if (body.books.length > 0) {",
+                  "  const b = body.books[0];",
+                  "  pm.test('first book has matched_by array', () => pm.expect(b.matched_by).to.be.an('array').that.is.not.empty);",
+                  "  pm.test('first book has owner.display_name', () => pm.expect(b.owner.display_name).to.be.a('string'));",
+                  "  pm.test('first book has NO owner.email', () => pm.expect(b.owner.email).to.be.undefined);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/search?q=mohamed \u2014 owner match (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/search?q=mohamed",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "mohamed"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('books is an array', () => pm.expect(body.books).to.be.an('array'));",
+                  "if (body.books.length > 0) {",
+                  "  const ownerMatches = body.books.filter(b => b.matched_by.includes('owner'));",
+                  "  pm.test('at least one book matched by owner', () => pm.expect(ownerMatches.length).to.be.at.least(1));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/search?q= \u2014 empty query (400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/search?q=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 400', () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test('error code is VALIDATION_ERROR', () => pm.expect(body.error.code).to.eql('VALIDATION_ERROR'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "query search(q) \u2014 anonymous (owner.email null)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query{search(q:\\\"art\\\"){books{title matched_by owner{display_name email}}}}\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('no errors', () => pm.expect(body.errors).to.be.undefined);",
+                  "pm.test('books is an array', () => pm.expect(body.data.search.books).to.be.an('array'));",
+                  "if (body.data.search.books.length > 0) {",
+                  "  const b = body.data.search.books[0];",
+                  "  pm.test('matched_by is an array', () => pm.expect(b.matched_by).to.be.an('array'));",
+                  "  pm.test('owner.email is null for anonymous', () => pm.expect(b.owner.email).to.be.null);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "query book(id) { my_active_reservation } \u2014 null today",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query B($id:ID!){book(id:$id){title my_active_reservation{id state}}}\", \"variables\": {\"id\": \"{{createdBookId}}\"}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('no errors', () => pm.expect(body.errors).to.be.undefined);",
+                  "pm.test('my_active_reservation is null', () => pm.expect(body.data.book.my_active_reservation).to.be.null);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Covers",
       "description": "Public GET /api/v1/covers/:object_key \u2014 proxies MinIO through the gateway. Depends on createdCoverKey captured by the Books \u2014 Add happy path.",
       "item": [

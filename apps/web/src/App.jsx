@@ -12,6 +12,7 @@ import AddBookPage from './pages/AddBookPage.jsx';
 import BookDetailPage from './pages/BookDetailPage.jsx';
 import BrowsePage from './pages/BrowsePage.jsx';
 import SearchPage from './pages/SearchPage.jsx';
+import MyReservationsPage from './pages/MyReservationsPage.jsx';
 
 function Placeholder({ title, copy }) {
   return (
@@ -68,10 +69,9 @@ function App() {
         <Route
           path="/reservations"
           element={
-            <Placeholder
-              title="My reservations"
-              copy="Your active reservations and lending history will live here once loans go live."
-            />
+            <RequireAuth>
+              <MyReservationsPage />
+            </RequireAuth>
           }
         />
         <Route

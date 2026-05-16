@@ -11,7 +11,9 @@ const SNAPSHOT_PATH = process.env.BOOK_SNAPSHOT_PATH || '/app/data/books.snapsho
 const DEBOUNCE_MS = 200;
 
 const bookSchema = {
-  version: 0,
+  // Bump on every shape change so RxDB runs the migration below instead of
+  // refusing the snapshot (error JD2) and silently starting empty.
+  version: 1,
   primaryKey: 'id',
   type: 'object',
   properties: {
@@ -47,7 +49,17 @@ async function init(logger) {
     name: 'bookshare',
     storage: wrappedValidateAjvStorage({ storage: getRxStorageMemory() }),
   });
-  await db.addCollections({ books: { schema: bookSchema } });
+  await db.addCollections({
+    books: {
+      schema: bookSchema,
+      // Identity migration — every prior document remains valid under the
+      // current schema. Bump `version` and add the next step here when a
+      // future change actually transforms shape.
+      migrationStrategies: {
+        1: (doc) => doc,
+      },
+    },
+  });
   books = db.books;
 
   // Restore from disk on boot — silent on first-ever launch when the file

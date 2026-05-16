@@ -4,8 +4,10 @@ const { createRxDatabase, addRxPlugin } = require('rxdb');
 const { getRxStorageMemory } = require('rxdb/plugins/storage-memory');
 const { wrappedValidateAjvStorage } = require('rxdb/plugins/validate-ajv');
 const { RxDBJsonDumpPlugin } = require('rxdb/plugins/json-dump');
+const { RxDBMigrationSchemaPlugin } = require('rxdb/plugins/migration-schema');
 
 addRxPlugin(RxDBJsonDumpPlugin);
+addRxPlugin(RxDBMigrationSchemaPlugin);
 
 const SNAPSHOT_PATH = process.env.BOOK_SNAPSHOT_PATH || '/app/data/books.snapshot.json';
 const DEBOUNCE_MS = 200;
@@ -62,14 +64,30 @@ async function init(logger) {
   });
   books = db.books;
 
-  // Restore from disk on boot — silent on first-ever launch when the file
-  // does not yet exist.
+  // Restore from disk on boot. We DO NOT use importJSON — its strict
+  // schemaHash check throws JD2 when the schema shape changes (e.g. lowering
+  // year_published.minimum), discarding the entire snapshot. Instead we read
+  // the raw docs and bulk-insert them through the live schema; docs that no
+  // longer match are skipped with a warn, and everything else survives.
   try {
     const raw = await fs.readFile(SNAPSHOT_PATH, 'utf8');
     const dump = JSON.parse(raw);
-    await db.importJSON(dump);
-    const count = dump?.collections?.[0]?.docs?.length || 0;
-    logger.info({ snapshot_path: SNAPSHOT_PATH, count }, 'snapshot restored');
+    const stored = dump?.collections?.[0]?.docs || [];
+    if (stored.length > 0) {
+      const result = await books.bulkInsert(stored);
+      const restored = result.success?.length ?? stored.length;
+      const skipped = result.error?.length ?? 0;
+      logger.info(
+        { snapshot_path: SNAPSHOT_PATH, restored, skipped },
+        'snapshot restored',
+      );
+      if (skipped > 0) {
+        logger.warn(
+          { skipped_ids: result.error.map((e) => e.documentId || '<unknown>') },
+          'some docs failed to restore',
+        );
+      }
+    }
   } catch (err) {
     if (err.code !== 'ENOENT') {
       logger.warn({ err }, 'snapshot read failed — starting empty');

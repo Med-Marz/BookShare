@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
+  Bookmark,
   CheckCircle2,
   LogIn,
   Mail,
@@ -434,6 +435,33 @@ function BookDetailPage() {
                 >
                   {deleteError}
                 </p>
+              )}
+            </div>
+          )}
+
+          {/* Reserve CTA — visible to non-owners only when status is Available */}
+          {!isOwner && book.status === 'Available' && !editing && (
+            <div className="mt-6">
+              {isAuthenticated ? (
+                <button
+                  type="button"
+                  disabled
+                  aria-disabled="true"
+                  title="Reservations come online with the loan lifecycle."
+                  className="btn-primary"
+                >
+                  <Bookmark className="h-4 w-4" aria-hidden="true" />
+                  Reserve this book
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  state={{ from: location }}
+                  className="btn-primary no-underline"
+                >
+                  <LogIn className="h-4 w-4" aria-hidden="true" />
+                  Sign in to reserve this book
+                </Link>
               )}
             </div>
           )}

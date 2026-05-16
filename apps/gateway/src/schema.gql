@@ -60,6 +60,12 @@ type Mutation {
 extend type Query {
   book(id: ID!): Book!
   recentBooks(limit: Int = 12): [Book!]!
+  books(limit: Int = 24, cursor: String = ""): BookPage!
+}
+
+type BookPage {
+  edges: [Book!]!
+  next_cursor: String!
 }
 
 type Book {

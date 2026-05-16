@@ -119,6 +119,46 @@ function updateState(id, patch) {
   });
 }
 
+function listByBorrower(borrower_id) {
+  return new Promise((resolve, reject) => {
+    db.all(
+      `SELECT * FROM reservations WHERE borrower_id = ? ORDER BY created_at DESC`,
+      [borrower_id],
+      (err, rows) => {
+        if (err) return reject(err);
+        resolve((rows || []).map(row2reservation));
+      },
+    );
+  });
+}
+
+function listByOwner(owner_id) {
+  return new Promise((resolve, reject) => {
+    db.all(
+      `SELECT * FROM reservations WHERE owner_id = ? ORDER BY created_at DESC`,
+      [owner_id],
+      (err, rows) => {
+        if (err) return reject(err);
+        resolve((rows || []).map(row2reservation));
+      },
+    );
+  });
+}
+
+function countActiveByBorrower(borrower_id) {
+  return new Promise((resolve, reject) => {
+    db.get(
+      `SELECT COUNT(*) AS n FROM reservations
+        WHERE borrower_id = ? AND state IN ('Active', 'LoanStarted')`,
+      [borrower_id],
+      (err, row) => {
+        if (err) return reject(err);
+        resolve(row?.n ?? 0);
+      },
+    );
+  });
+}
+
 function close() {
   return new Promise((resolve, reject) => {
     if (!db) return resolve();
@@ -132,5 +172,8 @@ module.exports = {
   getReservation,
   getActiveReservation,
   updateState,
+  listByBorrower,
+  listByOwner,
+  countActiveByBorrower,
   close,
 };

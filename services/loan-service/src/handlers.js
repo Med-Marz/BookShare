@@ -284,6 +284,57 @@ function makeHandlers(logger) {
       }
     },
 
+    async ListMyReservations(call, callback) {
+      const userId = metaUser(call);
+      if (!userId) {
+        return callback({
+          code: grpc.status.PERMISSION_DENIED,
+          message: 'missing x-user-id metadata',
+        });
+      }
+      try {
+        const reservations = await db.listByBorrower(userId);
+        return callback(null, { reservations });
+      } catch (err) {
+        logger.error({ err, user_id: userId }, 'ListMyReservations failed');
+        return callback({ code: grpc.status.INTERNAL, message: 'failed to list reservations' });
+      }
+    },
+
+    async ListReservationsOnMyBooks(call, callback) {
+      const userId = metaUser(call);
+      if (!userId) {
+        return callback({
+          code: grpc.status.PERMISSION_DENIED,
+          message: 'missing x-user-id metadata',
+        });
+      }
+      try {
+        const reservations = await db.listByOwner(userId);
+        return callback(null, { reservations });
+      } catch (err) {
+        logger.error({ err, user_id: userId }, 'ListReservationsOnMyBooks failed');
+        return callback({ code: grpc.status.INTERNAL, message: 'failed to list reservations' });
+      }
+    },
+
+    async CountMyActiveReservations(call, callback) {
+      const userId = metaUser(call);
+      if (!userId) {
+        return callback({
+          code: grpc.status.PERMISSION_DENIED,
+          message: 'missing x-user-id metadata',
+        });
+      }
+      try {
+        const count = await db.countActiveByBorrower(userId);
+        return callback(null, { count });
+      } catch (err) {
+        logger.error({ err, user_id: userId }, 'CountMyActiveReservations failed');
+        return callback({ code: grpc.status.INTERNAL, message: 'failed to count reservations' });
+      }
+    },
+
     async GetMyActiveReservationOnBook(call, callback) {
       const userId = metaUser(call);
       if (!userId) {

@@ -126,6 +126,11 @@ module.exports = {
   },
 
   Book: {
+    // Placeholder until reservations come online. Story 4.x will set this
+    // to a real Reservation when the viewer has an active reservation on
+    // this book.
+    my_active_reservation: () => null,
+
     // The flagship cross-service join — fans out to user-service for the
     // owner record. Anonymous viewers see contact fields nulled per the
     // contact-info gating rule already used by Query.user.

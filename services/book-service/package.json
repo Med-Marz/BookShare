@@ -15,6 +15,7 @@
   "dependencies": {
     "@grpc/grpc-js": "^1.14.3",
     "@grpc/proto-loader": "^0.8.1",
+    "kafkajs": "^2.2.4",
     "minio": "^8.0.7",
     "pino": "^10.3.1",
     "pino-pretty": "^13.1.3",

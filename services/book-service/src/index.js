@@ -6,7 +6,10 @@ const pino = require('pino');
 
 const db = require('./db');
 const minio = require('./minio');
+const kafkaConsumer = require('./kafkaConsumer');
 const { makeHandlers } = require('./handlers');
+
+let consumer; // kept module-scoped so SIGTERM can disconnect it
 
 // ---- Service identity ----
 const SERVICE_NAME = 'book-service';
@@ -48,6 +51,8 @@ async function start() {
   logger.info({ snapshot_path: snapshotPath }, 'RxDB ready');
 
   await minio.init(logger);
+
+  consumer = await kafkaConsumer.init(db, logger);
 
   const realHandlers = makeHandlers(logger);
   const handlers = {};
@@ -94,6 +99,7 @@ async function start() {
   function shutdown(signal) {
     logger.info({ signal }, 'shutting down');
     server.tryShutdown(async () => {
+      if (consumer) await consumer.disconnect().catch(() => {});
       await db.close(logger).catch(() => {});
       process.exit(0);
     });

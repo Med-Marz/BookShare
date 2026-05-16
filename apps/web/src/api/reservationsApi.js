@@ -23,3 +23,21 @@ export async function markReturned(reservationId) {
   const res = await axios.post(`/api/v1/reservations/${reservationId}/mark-returned`);
   return res.data.reservation;
 }
+
+// GET /api/v1/me/reservations — borrower view, with book + owner attached.
+export async function listMyReservations() {
+  const res = await axios.get(`/api/v1/me/reservations`);
+  return res.data.reservations;
+}
+
+// GET /api/v1/me/owned-reservations — owner view, with book + borrower attached.
+export async function listOwnedReservations() {
+  const res = await axios.get(`/api/v1/me/owned-reservations`);
+  return res.data.reservations;
+}
+
+// GET /api/v1/me/activity — { activeReservationCount, listedBookCount }.
+export async function getMyActivity() {
+  const res = await axios.get(`/api/v1/me/activity`);
+  return res.data;
+}

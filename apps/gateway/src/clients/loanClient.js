@@ -37,4 +37,7 @@ module.exports = {
   startLoan: unary('StartLoan'),
   markReturned: unary('MarkReturned'),
   getMyActiveReservationOnBook: unary('GetMyActiveReservationOnBook'),
+  listMyReservations: unary('ListMyReservations'),
+  listReservationsOnMyBooks: unary('ListReservationsOnMyBooks'),
+  countMyActiveReservations: unary('CountMyActiveReservations'),
 };

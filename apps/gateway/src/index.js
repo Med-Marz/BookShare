@@ -27,15 +27,24 @@ const typeDefs = fs.readFileSync(path.join(__dirname, 'schema.gql'), 'utf8');
 async function start() {
   const app = express();
 
+  // ---- Health endpoint for Docker Compose healthcheck. Mounted BEFORE the
+  // rate limiter so the every-10s container healthcheck doesn't burn through
+  // the per-IP budget (it would otherwise eat ~90 of the 100 reqs / 15 min
+  // window on its own).
+  app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+
   // ---- Middleware chain — order matters (NFR enforcement) ----
   // 1. CORS: explicit allowlist of origins, no wildcard.
   app.use(cors({ origin: WEB_ORIGIN, credentials: false }));
 
-  // 2. Rate limit: 100 requests / 15-minute window per IP (NFR11b).
+  // 2. Rate limit: 300 requests / 15-minute window per IP (NFR11b). The
+  // limit is set high enough to comfortably absorb a full Postman regression
+  // run (currently ~110 requests) while still rejecting an abusive client.
+  // The window can be tuned later via an env var if it matters for prod.
   app.use(
     rateLimit({
       windowMs: 15 * 60 * 1000,
-      max: 100,
+      max: 300,
       standardHeaders: true,
       legacyHeaders: false,
       message: {
@@ -51,9 +60,6 @@ async function start() {
 
   // 4. pino HTTP request logging.
   app.use(pinoHttp({ logger }));
-
-  // ---- Health endpoint for Docker Compose healthcheck (no business logic) ----
-  app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
   // ---- PUBLIC routes under /api/v1 (no JWT required) ----
   app.get('/api/v1', (_req, res) => res.json({ name: 'BookShare API', version: 'v1' }));

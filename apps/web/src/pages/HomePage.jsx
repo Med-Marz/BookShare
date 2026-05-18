@@ -110,12 +110,6 @@ function HomePage() {
               )}
             </div>
 
-            {isAuthenticated && currentUser?.display_name && (
-              <p className="mt-8 text-sm text-sepiaSoft">
-                Welcome back,{' '}
-                <span className="font-semibold text-sepia">{currentUser.display_name}</span>.
-              </p>
-            )}
           </div>
 
           <div className="relative mx-auto w-full max-w-sm">
@@ -128,13 +122,19 @@ function HomePage() {
       {/* ─────────── ACTIVITY PANEL (authenticated only) ─────────── */}
       {isAuthenticated && activity && (
         <section className="mx-auto max-w-6xl px-6 pt-12">
+          {currentUser?.display_name && (
+            <h1 className="font-display text-4xl text-sepiaDark sm:text-5xl">
+              Welcome back,{' '}
+              <span className="italic text-bordeaux">{currentUser.display_name}</span>.
+            </h1>
+          )}
           {activity.activeReservationCount === 0 && activity.listedBookCount === 0 ? (
-            <div className="card-surface flex items-start gap-4 p-6">
+            <div className="card-surface mt-6 flex items-start gap-4 p-6">
               <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-paper text-bordeaux">
                 <BookOpenCheck className="h-5 w-5" aria-hidden="true" />
               </span>
               <div>
-                <h2 className="font-display text-xl text-sepiaDark">Welcome</h2>
+                <h2 className="font-display text-xl text-sepiaDark">Your activity</h2>
                 <p className="mt-1 text-sm text-sepiaSoft">
                   You haven't reserved or listed any books yet — try browsing the catalog or
                   add your first book.
@@ -152,7 +152,9 @@ function HomePage() {
               </div>
             </div>
           ) : (
-            <div className="grid gap-5 sm:grid-cols-2">
+            <>
+              <h2 className="mb-4 mt-6 font-display text-2xl text-sepiaDark">Your activity</h2>
+              <div className="grid gap-5 sm:grid-cols-2">
               <Link
                 to="/reservations"
                 className="card-surface flex items-center gap-4 p-6 no-underline transition hover:-translate-y-0.5 hover:shadow-shelfLg"
@@ -181,7 +183,8 @@ function HomePage() {
                   <p className="text-sm text-sepiaSoft">Books you've listed</p>
                 </div>
               </Link>
-            </div>
+              </div>
+            </>
           )}
         </section>
       )}

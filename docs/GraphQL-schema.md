@@ -16,7 +16,7 @@ need three calls.
 ```graphql
 type User {
   id: ID!
-  email: String          # null for anonymous viewers (FR10)
+  email: String          # null for anonymous viewers (contact-info gated)
   display_name: String!
   phone: String          # null for anonymous viewers
   address: String        # null for anonymous viewers
@@ -200,7 +200,7 @@ Errors are returned as standard `GraphQLError` objects with
 
 ## Three example queries
 
-### 1. Flagship cross-service join (the FR44 demo)
+### 1. Flagship cross-service join
 
 Show a book's detail + the owner's contact + whether the viewer holds an
 active reservation, all in one round-trip:
@@ -291,7 +291,7 @@ query DemoMyReservations {
 Running the flagship query **without** an `Authorization` header:
 - `book.title` / `author` / `status` / `cover_object_key`: populated.
 - `book.owner.display_name`: populated.
-- `book.owner.email` / `phone` / `address`: **null** (FR10).
+- `book.owner.email` / `phone` / `address`: **null** (contact-info gated).
 - `book.my_active_reservation`: **null** (no caller identity → no possible reservation).
 
 This is enforced in the resolvers, not the microservices — book-service

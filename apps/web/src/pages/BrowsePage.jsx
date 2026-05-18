@@ -16,8 +16,9 @@ function BrowsePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Single fetch of the whole catalog — the cahier-scale stays well under
-  // a few hundred books, so we slice client-side rather than chase cursors.
+  // Single fetch of the whole catalog — at this project's scale the
+  // catalog stays well under a few hundred books, so we slice client-side
+  // rather than chase cursors.
   useEffect(() => {
     let cancelled = false;
     setLoading(true);

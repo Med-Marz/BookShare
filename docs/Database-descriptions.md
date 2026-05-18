@@ -1,17 +1,18 @@
 # Database descriptions
 
-BookShare follows the cahier's **one-database-per-microservice** rule.
-Three services use SQLite3 (the relational engine the cahier allows),
-one uses RxDB (the NoSQL alternative). Cover-image binaries live in MinIO,
-separate from the relational catalog, owned by `book-service`.
+BookShare follows the **one-database-per-microservice** rule.
+Three services use SQLite3 (relational); `book-service` uses RxDB (the
+NoSQL component, demonstrating a document-store alternative). Cover-image
+binaries live in MinIO, separate from the relational catalog, owned by
+`book-service`.
 
 | Service | Engine | Persistence target | Why this engine |
 | --- | --- | --- | --- |
 | `user-service` | SQLite3 | `user-db` volume → `/app/data/user.sqlite` | Account/auth tables benefit from `UNIQUE(email)` and atomic updates. |
-| `book-service` | RxDB (in-memory + JSON snapshot) | `book-data` volume → `/app/data/snapshot.json` | The cahier requires a NoSQL component; RxDB's document model fits the catalog naturally and lets us demonstrate the schema-versioned migration pattern. |
+| `book-service` | RxDB (in-memory + JSON snapshot) | `book-data` volume → `/app/data/snapshot.json` | RxDB satisfies the NoSQL requirement; its document model fits the catalog naturally and demonstrates the schema-versioned migration pattern. |
 | `loan-service` | SQLite3 | `loan-db` volume → `/app/data/loan.sqlite` | Reservation state machine is intrinsically relational (`borrower_id`, `owner_id`, `book_id`, lifecycle states). |
 | `notification-service` | SQLite3 | `notification-db` volume → `/app/data/notification.sqlite` | `UNIQUE(event_id)` constraint provides cheap durable idempotency for Kafka redeliveries. |
-| `book-service` (covers) | MinIO bucket `bookshare-covers` | `minio-data` volume | Binary covers don't belong in a row store; MinIO is the cahier-compatible S3 substitute. |
+| `book-service` (covers) | MinIO bucket `bookshare-covers` | `minio-data` volume | Binary covers don't belong in a row store; MinIO provides an S3-compatible object store running locally. |
 
 Each Docker volume is independent. `docker compose down` preserves them
 all; `docker compose down -v` wipes them.
@@ -35,17 +36,17 @@ CREATE TABLE IF NOT EXISTS users (
 ```
 
 - Passwords are bcrypt-hashed before insert. Plaintext never touches disk.
-- `UNIQUE(email)` enforces FR3 (duplicate signup → 409 CONFLICT).
+- `UNIQUE(email)` rejects duplicate signups at the DB level (the gateway maps the resulting error to `409 CONFLICT`).
 - Phone and address are mandatory because the contract is "exposed-to-borrower-after-reservation"; you can't sign up without coordinates someone could actually reach.
 
 ---
 
 ## book-service — RxDB (NoSQL, with on-disk JSON snapshot)
 
-The cahier mandates one NoSQL store; we use RxDB with the in-memory storage
-adapter, periodically flushed to a JSON snapshot under the `book-data`
-Docker volume. The schema is enforced by RxDB's AJV validator and bumped
-when shape changes.
+The project specifies one NoSQL store; we use RxDB with the in-memory
+storage adapter, periodically flushed to a JSON snapshot under the
+`book-data` Docker volume. The schema is enforced by RxDB's AJV validator
+and bumped when shape changes.
 
 ```js
 const bookSchema = {

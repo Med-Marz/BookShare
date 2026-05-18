@@ -7,7 +7,7 @@ All routes return JSON with `Content-Type: application/json` unless noted
 | Label | Meaning |
 | --- | --- |
 | **public** | No `Authorization` header required. |
-| **optionalAuth** | Works without a JWT; if a valid JWT is present, the response is enriched (typically contact fields or viewer-specific data per FR10 gating). |
+| **optionalAuth** | Works without a JWT; if a valid JWT is present, the response is enriched with contact fields or viewer-specific data (anonymous viewers see contact fields nulled out). |
 | **requireAuth** | A valid `Authorization: Bearer <JWT>` header is mandatory; missing/expired → `401`. |
 
 The standard error envelope is:
@@ -83,7 +83,8 @@ changed.
 ### `GET /users/:id` — optionalAuth
 
 Return a user's public profile. Contact fields (`email`, `phone`, `address`)
-are **null** unless the caller presents a valid JWT (FR10 contact-info gate).
+are **null** unless the caller presents a valid JWT — the gateway only
+exposes contact info to authenticated viewers.
 
 **Success — `200 OK`**: user object with contact fields populated or null.
 
@@ -138,7 +139,8 @@ caller is authenticated, the response also carries `my_active_reservation`
 
 ### `POST /books` — requireAuth
 
-Add a book. Multipart, cover mandatory (FR18 layered defense).
+Add a book. Multipart, cover mandatory (the gateway enforces this at upload
+time as well as the service-side validation — defense in depth).
 
 **Body** (`multipart/form-data`):
 - `title`, `author`, `year_published` (text fields).

@@ -2,7 +2,7 @@
 
 The Kafka broker (KRaft single-node) hosts **four business-event topics**.
 Topics, consumer groups, and the envelope shape are also captured in
-[`proto/kafka-events.md`](../proto/kafka-events.md), which is the contract
+[`kafka-events.md`](./kafka-events.md), which is the contract
 source of truth for producers and consumers. This file is the longer
 narrative — what triggers each event, what the side effects look like, and
 why we use Kafka here at all.

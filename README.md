@@ -145,7 +145,7 @@ The deep-dive technical documentation:
 - **[`docs/GraphQL-schema.md`](docs/GraphQL-schema.md)** — full schema, three example queries, cross-service fan-out explained.
 - **[`docs/Kafka-topics.md`](docs/Kafka-topics.md)** — per-topic producer/consumers/payloads/side effects.
 - **[`docs/Database-descriptions.md`](docs/Database-descriptions.md)** — per-service DB schemas and rationale.
-- **[`proto/*.proto`](proto/)** + **[`proto/kafka-events.md`](proto/kafka-events.md)** — gRPC contracts and Kafka envelope.
+- **[`proto/*.proto`](proto/)** + **[`docs/kafka-events.md`](docs/kafka-events.md)** — gRPC contracts and Kafka envelope.
 
 ## Postman collection
 
@@ -173,7 +173,7 @@ and can be imported into any Postman workspace.
 | `.proto` contracts | [`proto/*.proto`](proto/) |
 | REST endpoint descriptions | [`docs/REST-endpoints.md`](docs/REST-endpoints.md) |
 | GraphQL schema description | [`docs/GraphQL-schema.md`](docs/GraphQL-schema.md) |
-| Kafka topic descriptions | [`docs/Kafka-topics.md`](docs/Kafka-topics.md) + [`proto/kafka-events.md`](proto/kafka-events.md) |
+| Kafka topic descriptions | [`docs/Kafka-topics.md`](docs/Kafka-topics.md) + [`docs/kafka-events.md`](docs/kafka-events.md) |
 | Database descriptions | [`docs/Database-descriptions.md`](docs/Database-descriptions.md) |
 | Install + run instructions | [Quickstart](#quickstart) |
 

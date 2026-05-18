@@ -1,31 +1,31 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookmarkPlus, Library } from 'lucide-react';
+import { BookmarkPlus, ChevronLeft, ChevronRight, Library } from 'lucide-react';
 import BookCard from '../components/BookCard.jsx';
 import { listBooks } from '../api/booksApi';
 import useAuth from '../auth/useAuth';
+
+const PAGE_SIZE = 8;
 
 function BrowsePage() {
   const { token } = useAuth();
   const isAuthenticated = Boolean(token);
 
   const [books, setBooks] = useState([]);
-  const [cursor, setCursor] = useState('');
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
 
+  // Single fetch of the whole catalog — the cahier-scale stays well under
+  // a few hundred books, so we slice client-side rather than chase cursors.
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(null);
     (async () => {
       try {
-        const { books: first, next_cursor } = await listBooks({ limit: 24 });
-        if (!cancelled) {
-          setBooks(first);
-          setCursor(next_cursor);
-        }
+        const { books: all } = await listBooks({ limit: 200 });
+        if (!cancelled) setBooks(all || []);
       } catch {
         if (!cancelled) setError('Could not load the catalog. Please try again.');
       } finally {
@@ -37,19 +37,17 @@ function BrowsePage() {
     };
   }, []);
 
-  async function handleLoadMore() {
-    if (!cursor || loadingMore) return;
-    setLoadingMore(true);
-    setError(null);
-    try {
-      const { books: next, next_cursor } = await listBooks({ limit: 24, cursor });
-      setBooks((prev) => [...prev, ...next]);
-      setCursor(next_cursor);
-    } catch {
-      setError('Could not load more books. Please try again.');
-    } finally {
-      setLoadingMore(false);
-    }
+  const totalPages = Math.max(1, Math.ceil(books.length / PAGE_SIZE));
+  const pageBooks = useMemo(
+    () => books.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [books, page],
+  );
+
+  function goToPage(target) {
+    if (target < 1 || target > totalPages || target === page) return;
+    setPage(target);
+    // Scroll back up so the user lands on the new page's first row.
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   return (
@@ -99,26 +97,70 @@ function BrowsePage() {
       ) : (
         <>
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {books.map((b) => (
+            {pageBooks.map((b) => (
               <BookCard key={b.id} book={b} owner={b.owner} showStatus />
             ))}
           </div>
 
-          {cursor && (
-            <div className="mt-10 flex justify-center">
-              <button
-                type="button"
-                onClick={handleLoadMore}
-                disabled={loadingMore}
-                className="btn-ghost"
+          {totalPages > 1 && (
+            <nav
+              aria-label="Catalog pagination"
+              className="mt-10 flex flex-wrap items-center justify-center gap-2"
+            >
+              <PaginationButton
+                onClick={() => goToPage(page - 1)}
+                disabled={page === 1}
+                aria-label="Previous page"
               >
-                {loadingMore ? 'Loading…' : 'Load more books'}
-              </button>
-            </div>
+                <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+                <span>Previous</span>
+              </PaginationButton>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                <PaginationButton
+                  key={n}
+                  onClick={() => goToPage(n)}
+                  active={n === page}
+                  aria-label={`Page ${n}`}
+                  aria-current={n === page ? 'page' : undefined}
+                >
+                  {n}
+                </PaginationButton>
+              ))}
+
+              <PaginationButton
+                onClick={() => goToPage(page + 1)}
+                disabled={page === totalPages}
+                aria-label="Next page"
+              >
+                <span>Next</span>
+                <ChevronRight className="h-4 w-4" aria-hidden="true" />
+              </PaginationButton>
+            </nav>
           )}
         </>
       )}
     </main>
+  );
+}
+
+function PaginationButton({ active, disabled, children, ...rest }) {
+  const base =
+    'inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-sm font-medium transition';
+  const variant = active
+    ? 'border-bordeaux bg-bordeaux text-ivory shadow-shelf cursor-default'
+    : disabled
+      ? 'border-paperDark bg-paper/40 text-sepiaSoft/60 cursor-not-allowed'
+      : 'border-paperDark bg-cream text-sepia hover:border-sepiaSoft hover:text-bordeaux';
+  return (
+    <button
+      type="button"
+      disabled={disabled || active}
+      className={`${base} ${variant}`}
+      {...rest}
+    >
+      {children}
+    </button>
   );
 }
 

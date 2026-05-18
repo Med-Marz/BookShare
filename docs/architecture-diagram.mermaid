@@ -1,0 +1,48 @@
+%% BookShare microservices architecture.
+%% Render to SVG with:  npx -p @mermaid-js/mermaid-cli mmdc -i docs/architecture-diagram.mermaid -o docs/architecture-diagram.svg
+%% Or paste into https://mermaid.live to preview and re-export.
+
+flowchart LR
+  classDef client fill:#FAF7F2,stroke:#7B2D26,color:#3E2F22,stroke-width:1.5px
+  classDef gateway fill:#7B2D26,stroke:#5C2120,color:#FAF7F2,stroke-width:1.5px
+  classDef service fill:#FFFCF6,stroke:#5C4632,color:#3E2F22,stroke-width:1.5px
+  classDef storage fill:#EFE6D8,stroke:#7A6249,color:#3E2F22,stroke-width:1px
+  classDef broker fill:#231F20,stroke:#000,color:#FAF7F2,stroke-width:1.5px
+
+  Client["React + Vite client<br/>(nginx :8080)"]:::client
+
+  Gateway["API Gateway<br/>Express + Apollo<br/>:4000"]:::gateway
+
+  UserSvc["user-service<br/>:50051"]:::service
+  BookSvc["book-service<br/>:50052"]:::service
+  LoanSvc["loan-service<br/>:50053"]:::service
+  NotifSvc["notification-service<br/>:50054"]:::service
+
+  UserDB[("SQLite<br/>user.sqlite")]:::storage
+  BookDB[("RxDB<br/>+ JSON snapshot")]:::storage
+  LoanDB[("SQLite<br/>loan.sqlite")]:::storage
+  NotifDB[("SQLite<br/>notification.sqlite")]:::storage
+  MinIO[("MinIO bucket<br/>bookshare-covers")]:::storage
+
+  Kafka["Kafka broker<br/>(KRaft mode)<br/>4 topics"]:::broker
+
+  Client -- "REST / GraphQL<br/>HTTP/1.1 + JSON" --> Gateway
+
+  Gateway -- "gRPC / HTTP/2" --> UserSvc
+  Gateway -- "gRPC / HTTP/2" --> BookSvc
+  Gateway -- "gRPC / HTTP/2" --> LoanSvc
+  Gateway -- "gRPC / HTTP/2" --> NotifSvc
+
+  UserSvc --- UserDB
+  BookSvc --- BookDB
+  BookSvc --- MinIO
+  LoanSvc --- LoanDB
+  NotifSvc --- NotifDB
+
+  LoanSvc -- "Producer<br/>book.reserved<br/>reservation.cancelled<br/>loan.started<br/>loan.returned" --> Kafka
+  Kafka -- "Consumer group:<br/>book-service.book-status" --> BookSvc
+  Kafka -- "Consumer group:<br/>notification-service.notifier" --> NotifSvc
+
+  NotifSvc -. "gRPC GetBook<br/>(message rendering)" .-> BookSvc
+  NotifSvc -. "gRPC GetUser<br/>(message rendering)" .-> UserSvc
+  LoanSvc -. "gRPC GetBook<br/>(Reserve validation)" .-> BookSvc
